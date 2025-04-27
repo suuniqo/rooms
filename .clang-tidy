@@ -1,0 +1,21 @@
+Checks: >
+  performance-*,
+  readability-*,
+  bugprone-*,
+  modernize-*,
+  cppcoreguidelines-*,
+  misc-*,
+  -bugprone-assignment-in-if-condition,
+  -bugprone-easily-swappable-parameters,
+  -cppcoreguidelines-init-variables,
+  -cppcoreguidelines-macro-to-enum,
+  -cppcoreguidelines-avoid-c-arrays,
+  -readability-identifier-length,
+  -modernize-use-using,
+  -modernize-use-trailing-return-type,
+  -modernize-deprecated-headers,
+  -modernize-redundant-void-arg,
+  -modernize-avoid-c-arrays,
+  -performance-enum-size
+CheckOptions:
+  modernize-unused-headers.IgnoreMacros: false
