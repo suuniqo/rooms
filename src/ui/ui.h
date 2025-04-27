@@ -18,15 +18,21 @@ extern void
 ui_init(ui_t** ui);
 
 extern void
-ui_start(void);
+ui_free(ui_t* ui);
 
 extern void
-ui_refresh(void);
+ui_start(ui_t* ui);
+
+extern void
+ui_stop(ui_t* ui);
+
+extern void
+ui_refresh(ui_t* ui);
 
 extern ui_signal_t
-ui_handle_keypress(char* msg_buf);
+ui_handle_keypress(ui_t* ui, char* msg_buf);
 
 extern void
-ui_handle_msg(const packet_t* packet);
+ui_handle_msg(ui_t* ui, const packet_t* packet);
 
 #endif /* !defined(UI_H) */

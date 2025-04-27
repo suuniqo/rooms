@@ -58,16 +58,16 @@ client_locked_stop(client_context_t* ctx) {
 }
 
 static void
-client_locked_enqueue(threads_t* threads, packet_t* packet) {
+client_locked_enqueue(threads_t* threads, ui_t* ui, packet_t* packet) {
     pthread_mutex_lock(&threads->mail_lock);
-    ui_handle_msg(packet);
+    ui_handle_msg(ui, packet);
     pthread_mutex_unlock(&threads->mail_lock);
 }
 
 static void
-client_locked_refresh(threads_t* threads) {
+client_locked_refresh(threads_t* threads, ui_t* ui) {
     pthread_mutex_lock(&threads->mail_lock);
-    ui_refresh();
+    ui_refresh(ui);
     pthread_mutex_unlock(&threads->mail_lock);
 }
 
@@ -75,11 +75,11 @@ client_locked_refresh(threads_t* threads) {
 /*** network ***/
 
 static void
-client_send(net_t* net, threads_t* threads, packet_t* packet) {
+client_send(net_t* net, threads_t* threads, ui_t* ui, packet_t* packet) {
     uint8_t packet_buf[MAX_PACKET_SIZE] = {0};
 
     packet_seal(packet);
-    client_locked_enqueue(threads, packet);
+    client_locked_enqueue(threads, ui, packet);
 
     packet_encode(packet, packet_buf);
 
@@ -89,7 +89,7 @@ client_send(net_t* net, threads_t* threads, packet_t* packet) {
 }
 
 static void
-client_recv(net_t* net, threads_t* threads) {
+client_recv(net_t* net, threads_t* threads, ui_t* ui) {
     uint8_t packet_buf[MAX_PACKET_SIZE] = {0};
     packet_t packet;
 
@@ -102,7 +102,7 @@ client_recv(net_t* net, threads_t* threads) {
     }
 
     packet_decode(packet_buf, &packet);
-    client_locked_enqueue(threads, &packet);
+    client_locked_enqueue(threads, ui, &packet);
 }
 
 /*** client loops ***/
@@ -112,7 +112,7 @@ client_loop_listener(void* ctx_nullable) {
     client_context_t* ctx = (client_context_t*) ctx_nullable;
 
     while (client_locked_isrunning(ctx)) {
-        client_recv(ctx->net, ctx->threads);
+        client_recv(ctx->net, ctx->threads, ctx->ui);
     }
 
     return NULL;
@@ -125,7 +125,7 @@ client_loop_talker(client_context_t* ctx) {
     packet_fill_usrname(&packet, ctx->config->usrname);
 
     while (client_locked_isrunning(ctx)) {
-        ui_signal_t rv = ui_handle_keypress(packet.msg);
+        ui_signal_t rv = ui_handle_keypress(ctx->ui, packet.msg);
 
         if (rv == SIGNAL_QUIT) {
             client_locked_stop(ctx);
@@ -133,10 +133,10 @@ client_loop_talker(client_context_t* ctx) {
         }
 
         if (rv == SIGNAL_MSG) {
-            client_send(ctx->net, ctx->threads, &packet);
+            client_send(ctx->net, ctx->threads, ctx->ui, &packet);
         }
 
-        client_locked_refresh(ctx->threads);
+        client_locked_refresh(ctx->threads, ctx->ui);
     }
 }
 
@@ -180,6 +180,7 @@ static void
 client_context_init(client_context_t* ctx, char** args) {
     config_init(&ctx->config, args);
     net_init(&ctx->net, ctx->config);
+    ui_init(&ctx->ui);
 
     client_threads_init(ctx);
 }
@@ -188,6 +189,7 @@ static void
 client_context_free(client_context_t* ctx) {
     net_shutdown(ctx->net, SHUT_RD);                /* unlock the listener thread calling recv */
 
+    ui_free(ctx->ui);
     client_threads_free(ctx);
     net_free(ctx->net);
     config_free(ctx->config);
@@ -202,8 +204,11 @@ client(char** args) {
 
     client_context_init(&ctx, args);
 
-    ui_start();
+    ui_start(ctx.ui);
+
     client_loop_talker(&ctx);
+
+    ui_stop(ctx.ui);
 
     client_context_free(&ctx);
 
