@@ -1,14 +1,20 @@
 
 #include "net.h"
 
+#include <stdatomic.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <netdb.h>
 #include <arpa/inet.h>
 #include <string.h>
+#include <sys/_pthread/_pthread_cond_t.h>
 #include <sys/socket.h>
+#include <time.h>
+#include <pthread.h>
 #include <unistd.h>
 
 #include "../error/error.h"
+#include "../syscall/syscall.h"
 
 
 /*** defines ***/
@@ -23,9 +29,7 @@
 
 static int
 get_socket(const char* ip, const char* port) {
-    struct addrinfo hints;
-    struct addrinfo *ai;
-    struct addrinfo *p;
+    struct addrinfo hints, *ai, *p;
 
     int rv = 0;
     int sockfd = -1;
@@ -56,10 +60,6 @@ get_socket(const char* ip, const char* port) {
     }
 
     freeaddrinfo(ai);
-
-    if (sockfd < 0) {
-        error_shutdown("network err: failed to connect");
-    }
 
     return sockfd;
 }
@@ -116,15 +116,85 @@ net_init(net_t** net, const config_t* config) {
     }
 
     (*net)->sockfd = get_socket(config->ip, config->port);
+
+    if ((*net)->sockfd == -1) {
+        error_shutdown("network err: failed to connect");
+    }
+}
+
+#define MIN_BACKOFF (ONE_SC / 16)
+#define MAX_BACKOFF (ONE_SC * 16)
+
+#define INM_RETRIES 16
+#define JITTER_RATIO 8
+
+void
+net_reconnect(net_t* net, const config_t* config, atomic_bool* retry, pthread_cond_t* cond, pthread_mutex_t* mutex) {
+    if (!atomic_load(retry)) {
+        return;
+    }
+
+    int64_t backoff, jitter;
+    int sockfd;
+
+    pthread_mutex_lock(mutex);
+
+    close(net->sockfd);
+    net->sockfd = -1;
+
+    for (unsigned i = 0; i < INM_RETRIES; ++i) {
+        sockfd = get_socket(config->ip, config->port);
+
+        if (sockfd != -1) {
+            net->sockfd = sockfd;
+            pthread_mutex_unlock(mutex);
+
+            return;
+        }
+    }
+
+    backoff = MIN_BACKOFF;
+
+    while (atomic_load(retry)) {
+        sockfd = get_socket(config->ip, config->port);
+
+        if (sockfd != -1) {
+            net->sockfd = sockfd;
+            pthread_mutex_unlock(mutex);
+
+            return;
+        }
+
+        jitter = safe_rand() % (backoff / JITTER_RATIO);
+
+        if (backoff < MAX_BACKOFF) {
+            backoff *= 2;
+        }
+
+        struct timespec now, timeout;
+        clock_gettime(CLOCK_REALTIME, &now);
+
+        timeout.tv_sec = now.tv_sec + (now.tv_nsec + backoff + jitter) / ONE_SC;
+        timeout.tv_nsec = (now.tv_nsec + backoff + jitter) % ONE_SC;
+
+        pthread_cond_timedwait(cond, mutex, &timeout);
+
+    };
+
+    pthread_mutex_unlock(mutex);
 }
 
 void
 net_shutdown(net_t* net, int flag) {
-    shutdown(net->sockfd, flag);
+    if (net->sockfd != -1) {
+        shutdown(net->sockfd, flag);
+    }
 }
 
 void
 net_free(net_t* net) {
-    close(net->sockfd);
+    if (net->sockfd != -1) {
+        close(net->sockfd);
+    }
     free(net);
 }

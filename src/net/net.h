@@ -5,6 +5,7 @@
 /*** includes ***/
 
 #include <netdb.h>
+#include <stdatomic.h>
 
 #include "../config/config.h"
 
@@ -13,6 +14,7 @@
 typedef struct net {
     int sockfd;
 } net_t;
+
 
 /*** methods ***/
 
@@ -27,6 +29,9 @@ get_in_addr(struct sockaddr* sa);
 
 extern void
 net_init(net_t** net, const config_t* config);
+
+extern void
+net_reconnect(net_t* net, const config_t* config, atomic_bool* retry, pthread_cond_t* cond, pthread_mutex_t* mutex);
 
 extern void
 net_shutdown(net_t* net, int flag);

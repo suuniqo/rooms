@@ -21,7 +21,7 @@ extern void
 prompt_free(prompt_t* prompt);
 
 extern void
-prompt_update(prompt_t* prompt, const prompt_layout_t* lyt, const prompt_layout_t* prev_lyt);
+prompt_update(prompt_t* prompt, const prompt_layout_t* lyt, prompt_layout_t prev_lyt);
 
 
 /*** get ***/

@@ -24,11 +24,12 @@
 /*** state ***/
 
 typedef enum {
-    EVENT_NONE   = 0,                       /* nothing happened */
-    EVENT_PROMPT = 1 << 0,                  /* user interacted with the prompt */
-    EVENT_CHAT   = 1 << 1,                  /* user intereacted with the chat or it changed state */
-    EVENT_REDRAW = 1 << 2,                  /* every element needs to be updated */
-    EVENT_WINCH  = 1 << 3,                  /* user resized screen */
+    EVENT_NONE   = 0,                               /* nothing happened */
+    EVENT_PROMPT = 1 << 0,                          /* user interacted with the prompt */
+    EVENT_CHAT   = 1 << 1,                          /* user intereacted with the chat or it changed state */
+    EVENT_CONN   = 1 << 2,                          /* connection state changed */
+    EVENT_REDRAW = 1 << 3,                          /* every element needs to be updated */
+    EVENT_WINCH  = 1 << 4,                          /* user resized screen */
 } ui_flag_t;
 
 typedef enum {
@@ -36,6 +37,16 @@ typedef enum {
     MODE_INFO,
     MODE_SMALL,
 } ui_mode_t;
+
+typedef enum {
+    CONN_ONLINE = 0,
+    CONN_OFFLINE,
+} ui_conn_t;
+
+const char* const CONN_STR[] = {
+    "online",
+    "reconnecting...",
+};
 
 typedef struct {
     term_layout_t term_lyt;
@@ -46,6 +57,7 @@ typedef struct {
 typedef struct {
     ui_mode_t prev_mode;
     ui_mode_t curr_mode;
+    ui_conn_t conn;
 } ui_status_t; 
 
 struct ui {
@@ -58,9 +70,9 @@ struct ui {
     ui_layout_t layout;
 };
 
-static atomic_uchar status_flags = ATOMIC_VAR_INIT(EVENT_WINCH);
+static atomic_uchar status_flags = ATOMIC_VAR_INIT(EVENT_WINCH);    /* NOLINT */
 
-#define FLAG_CMP(FLAG)              (atomic_load(&status_flags) & (FLAG))
+#define FLAG_CMP(FLAG)              (atomic_load(&status_flags) == (FLAG))
 #define FLAG_SET(FLAG)              (atomic_fetch_or(&status_flags, (FLAG)))
 #define FLAG_CLEAR(FLAG)            (atomic_fetch_and(&status_flags, ~(FLAG)))
 #define FLAG_TEST_AND_CLEAR(FLAG)   (FLAG_CLEAR(FLAG) & (FLAG))
@@ -108,6 +120,7 @@ minimum_scrsize(const term_layout_t* lyt) {
     return lyt->rows >= MIN_TERM_ROWS && lyt->cols >= MIN_TERM_COLS;
 }
 
+
 /* status */
 
 static void
@@ -115,6 +128,7 @@ status_init(ui_status_t* st) {
     *st = (ui_status_t) {
         .prev_mode = MODE_ROOM,
         .curr_mode = MODE_ROOM,
+        .conn      = CONN_ONLINE,
     };
 
     struct sigaction sa;
@@ -129,6 +143,7 @@ status_init(ui_status_t* st) {
 }
 
 
+/* layout */
 
 static void
 layout_update(ui_layout_t* lyt) {
@@ -163,13 +178,13 @@ layout_init(ui_layout_t* lyt) {
 
 static void
 ui_update(ui_t* ui) {
-    ui_layout_t* lyt_prev = &ui->layout;
+    ui_layout_t lyt_prev = ui->layout;
 
     layout_update(&ui->layout);
 
     ui_layout_t* lyt_curr = &ui->layout;
 
-    prompt_update(ui->prompt, &lyt_curr->prompt_lyt, &lyt_prev->prompt_lyt);
+    prompt_update(ui->prompt, &lyt_curr->prompt_lyt, lyt_prev.prompt_lyt);
     chat_update(ui->chat, &lyt_curr->chat_lyt);
 }
 
@@ -204,8 +219,13 @@ ui_refresh_room(ui_t* ui) {
         ui_update(ui);
         gui_draw_frame(ui->printer, &lyt->term_lyt);
 
+        FLAG_SET(EVENT_CONN);
         FLAG_SET(EVENT_CHAT);
         FLAG_SET(EVENT_PROMPT);
+    }
+
+    if (FLAG_TEST_AND_CLEAR(EVENT_CONN)) {
+        gui_draw_header(ui->printer, &lyt->term_lyt, CONN_STR[ui->status.conn]);
     }
 
     if (FLAG_TEST_AND_CLEAR(EVENT_CHAT)) {
@@ -334,13 +354,17 @@ ui_handle_keypress(ui_t* ui, char* msg_buf) {
     }
 
     if (input_ctrlchr(key) || input_navchr(key)) {
-        if (key == CNTRL('P')) {
+        if (key == ESCAPE) {
             mode_change(st, MODE_INFO);
             return SIGNAL_CONT;
 
         }
         if (key == RETURN) {
-            return flag_set_cond(prompt_edit_send(ui->prompt, msg_buf), EVENT_PROMPT) ? SIGNAL_MSG : SIGNAL_CONT;
+            if (st->conn == CONN_ONLINE) {
+                return flag_set_cond(prompt_edit_send(ui->prompt, msg_buf), EVENT_PROMPT) ? SIGNAL_MSG : SIGNAL_CONT;
+            }
+
+            return SIGNAL_CONT;
         }
 
         if (key == CNTRL('Q')) {
@@ -450,4 +474,14 @@ void
 ui_handle_msg(ui_t* ui, const packet_t *packet) {
     chat_enqueue(ui->chat, packet, &ui->layout.chat_lyt);
     FLAG_SET(EVENT_CHAT);
+}
+
+void
+ui_toggle_conn(ui_t *ui) {
+    ui_status_t* st = &ui->status;
+
+    st->conn = st->conn == CONN_ONLINE ?
+        CONN_OFFLINE : CONN_ONLINE;
+
+    (void)FLAG_SET(EVENT_CONN);
 }

@@ -12,38 +12,13 @@
 #include <sys/ioctl.h>
 
 #include "../../error/error.h"
+#include "../../syscall/syscall.h"
 
 /*** data ***/
 
 struct term {
     struct termios orig;
 };
-
-
-/*** sleep ***/
-
-#define ONE_MS 1000000
-#define ONE_SC 1000000000
-
-#define POLLING_RETRIES 10
-
-static void
-safe_nanosleep(long ns) {
-    struct timespec req = {ns / ONE_SC, ns % ONE_SC};
-    struct timespec rem;
-
-    while (nanosleep(&req, &rem) == -1) {
-        if (errno == EINTR) {
-            req = rem;
-        } else {
-            error_shutdown("term err: nanosleep");
-        }
-    }
-
-    if (errno == ETIMEDOUT) {
-        errno = 0;
-    }
-}
 
 
 /*** mem ***/
@@ -93,6 +68,8 @@ term_enable_rawmode(term_t* term) {
 
 
 /*** get ***/
+
+#define POLLING_RETRIES 10
 
 int
 term_get_winsize(term_layout_t* lyt) {

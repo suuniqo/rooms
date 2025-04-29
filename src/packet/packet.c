@@ -4,13 +4,13 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/_types/_ssize_t.h>
+#include <sys/socket.h>
 #include <time.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <arpa/inet.h>
-
-#include "../error/error.h"
 
 
 /*** aux ***/
@@ -106,34 +106,27 @@ packet_decode(const uint8_t* net_packet, packet_t* packet) {
 
 int
 packet_recvall(net_t* net, uint8_t* packet_buf) {
-    ssize_t n = recv(net->sockfd, packet_buf, 1, 0);
-    ssize_t recvd = 1;
+    int recvd, bytes;
 
-    if (n <= 0) {
-        return -1;
+    bytes = (int)recv(net->sockfd, packet_buf, 1, MSG_WAITALL);
+    recvd = bytes;
+
+    if (bytes <= 0) {
+        return bytes;
     }
 
-    ssize_t len = (int)packet_buf[0];
+    ssize_t len = (ssize_t)packet_buf[0];
 
-    if (len < MIN_PACKET_SIZE || len > MAX_PACKET_SIZE) {
-        error_log("packet err: invalid fmt");
-        return -1;
+    bytes = (int)recv(net->sockfd, packet_buf + recvd, (size_t)(len - recvd), MSG_WAITALL);
+    recvd += bytes;
+
+    if (bytes <= 0) {
+        return bytes;
     }
 
-    while (recvd < len) {
-        n = recv(net->sockfd, packet_buf + recvd, (size_t)(len - recvd), 0);
-
-        if (n <= 0) {
-            return -1;
-        }
-
-        recvd += n;
-    }
-
-    packet_buf[recvd] = '\0';
     packet_buf[0] = (uint8_t)recvd;
 
-    return 0;
+    return recvd;
 }
 
 int

@@ -31,6 +31,9 @@ extern void
 gui_draw_frame(printer_t* printer, const term_layout_t* lyt);
 
 extern void
+gui_draw_header(printer_t* printer, const term_layout_t* lyt, const char* status);
+
+extern void
 gui_draw_info(printer_t* printer, const term_layout_t* lyt);
 
 extern void

@@ -28,7 +28,6 @@ draw_scrollable(printer_t* printer, unsigned top, unsigned bottom) {
     printer_append(printer, "%s\x1b[%d;%dr", RESET_SCROLL, top, bottom);
 }
 
-
 /*** cursor ***/
 
 static void
@@ -86,14 +85,19 @@ gui_draw_cursor(printer_t* printer, unsigned row, unsigned col) {
 void
 gui_draw_frame(printer_t* printer, const term_layout_t* lyt) {
     printer_append(printer, "%s", CLEAR_SCREEN);
-
-    printer_append(printer, "\x1b[2;%dH%srooms\x1b[2;%dH%sctrl(p) %shelp\x1b[2;%dH%sctrl(q) %squit",
-            SCREEN_PADDING + 1,                                                    FONT_FORMAT(COLOR_LIGHT, BOLD),
-           (lyt->cols - 1 - (sizeof("ctrl(p) help") - 1) - (sizeof("rooms") - 1)) / 2, FONT_FORMAT(COLOR_DEFAULT, BOLD),      FONT_FORMAT(COLOR_DARK, THIN),
-            lyt->cols - (sizeof("ctrl(q) quit") - 1) - SCREEN_PADDING,               FONT_FORMAT(COLOR_DEFAULT, BOLD),      FONT_FORMAT(COLOR_DARK, THIN));
-
     draw_separator(printer, lyt->cols, lyt->rows - PROMPT_HEIGHT + 1);
     draw_scrollable(printer, HEADER_HEIGHT + 1, lyt->rows - PROMPT_HEIGHT);
+}
+
+void
+gui_draw_header(printer_t* printer, const term_layout_t* lyt, const char* status) {
+    printer_append(printer, "\x1b[2;%dH%s%srooms\x1b[%dC%sstatus %s%s\x1b[2;%dH%sesc %shelp",
+            SCREEN_PADDING + 1, CLEAR_RIGHT,
+            FONT_FORMAT(COLOR_LIGHT, BOLD),
+            (lyt->cols - (2*SCREEN_PADDING) - (sizeof("status ")-1) - strlen(status) - (sizeof("rooms")-1) - (sizeof("esc help")-1))/2,
+            FONT_FORMAT(COLOR_DEFAULT, BOLD), FONT_FORMAT(COLOR_DARK, THIN),
+            status, lyt->cols - (sizeof("esc help") - 1) - SCREEN_PADDING,
+            FONT_FORMAT(COLOR_DEFAULT, BOLD), FONT_FORMAT(COLOR_DARK, THIN));
 }
 
 void

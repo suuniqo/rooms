@@ -117,7 +117,7 @@ prompt_free(prompt_t* prompt) {
 }
 
 void
-prompt_update(prompt_t* prompt, const prompt_layout_t* lyt, const prompt_layout_t* prev_lyt) {
+prompt_update(prompt_t* prompt, const prompt_layout_t* lyt, prompt_layout_t prev_lyt) {
     if (prompt->input.blen == 0) {
         return;
     }
@@ -126,7 +126,7 @@ prompt_update(prompt_t* prompt, const prompt_layout_t* lyt, const prompt_layout_
     prompt_scroll_t* scroll = &prompt->scroll;
     prompt_cursor_t* cursor = &prompt->cursor;
 
-    unsigned old_width = prev_lyt->width;
+    unsigned old_width = prev_lyt.width;
 
     if (lyt->width <= cursor->col || (lyt->width < old_width && input->ulen > lyt->width)) {
         unsigned iter = old_width - lyt->width;

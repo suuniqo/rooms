@@ -35,4 +35,7 @@ ui_handle_keypress(ui_t* ui, char* msg_buf);
 extern void
 ui_handle_msg(ui_t* ui, const packet_t* packet);
 
+extern void
+ui_toggle_conn(ui_t* ui);
+
 #endif /* !defined(UI_H) */

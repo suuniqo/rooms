@@ -16,6 +16,7 @@ Checks: >
   -modernize-deprecated-headers,
   -modernize-redundant-void-arg,
   -modernize-avoid-c-arrays,
-  -performance-enum-size
+  -performance-enum-size,
+  -readability-isolate-declaration
 CheckOptions:
   modernize-unused-headers.IgnoreMacros: false
