@@ -3,7 +3,7 @@
 
 #include <stdatomic.h>
 #include <stdbool.h>
-#include <stdio.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <signal.h>
@@ -18,6 +18,7 @@
 #include "term/term.h"
 
 #include "../input/input.h"
+#include "../syscall/syscall.h"
 #include "../error/error.h"
 
 
@@ -27,14 +28,15 @@ typedef enum {
     EVENT_NONE   = 0,                               /* nothing happened */
     EVENT_PROMPT = 1 << 0,                          /* user interacted with the prompt */
     EVENT_CHAT   = 1 << 1,                          /* user intereacted with the chat or it changed state */
-    EVENT_CONN   = 1 << 2,                          /* connection state changed */
+    EVENT_HEADER = 1 << 2,                          /* header changed state */
     EVENT_REDRAW = 1 << 3,                          /* every element needs to be updated */
     EVENT_WINCH  = 1 << 4,                          /* user resized screen */
+    EVENT_TICK   = 1 << 5,                          /* a clock tick just happened */
 } ui_flag_t;
 
 typedef enum {
     MODE_ROOM,
-    MODE_INFO,
+    MODE_HELP,
     MODE_SMALL,
 } ui_mode_t;
 
@@ -42,11 +44,6 @@ typedef enum {
     CONN_ONLINE = 0,
     CONN_OFFLINE,
 } ui_conn_t;
-
-const char* const CONN_STR[] = {
-    "online",
-    "reconnecting...",
-};
 
 typedef struct {
     term_layout_t term_lyt;
@@ -60,6 +57,12 @@ typedef struct {
     ui_conn_t conn;
 } ui_status_t; 
 
+typedef struct {
+    int64_t last_tick;
+    int64_t delta_time;
+    int64_t tick;
+} ui_clock_t;
+
 struct ui {
     term_t* term;
     chat_t* chat;
@@ -68,9 +71,10 @@ struct ui {
     cleaner_t* cleaner;
     ui_status_t status;
     ui_layout_t layout;
+    ui_clock_t clock;
 };
 
-static atomic_uchar status_flags = ATOMIC_VAR_INIT(EVENT_WINCH);    /* NOLINT */
+static atomic_uchar status_flags = ATOMIC_VAR_INIT(EVENT_WINCH | EVENT_REDRAW);    /* NOLINT */
 
 #define FLAG_CMP(FLAG)              (atomic_load(&status_flags) == (FLAG))
 #define FLAG_SET(FLAG)              (atomic_fetch_or(&status_flags, (FLAG)))
@@ -96,7 +100,6 @@ flag_set_cond(int rv, ui_flag_t flag) {
 
 inline static void
 mode_change(ui_status_t* st, ui_mode_t mode) {
-
     if (mode != st->curr_mode) {
         st->prev_mode = st->curr_mode;
         st->curr_mode = mode;
@@ -118,6 +121,33 @@ winch_observer(int sig) {
 static bool
 minimum_scrsize(const term_layout_t* lyt) {
     return lyt->rows >= MIN_TERM_ROWS && lyt->cols >= MIN_TERM_COLS;
+}
+
+
+/* clock */
+
+static void
+clock_init(ui_clock_t* clk) {
+    *clk = (ui_clock_t) {
+        .delta_time = 0,
+        .last_tick = safe_time_ms(),
+        .tick = 0,
+    };
+}
+
+static void
+clock_update(ui_clock_t* clk) {
+    int64_t now = safe_time_ms();
+
+    clk->delta_time = now - clk->last_tick;
+
+    if (clk->delta_time > TICK_SPEED_MS) {
+        clk->last_tick = now;
+        clk->delta_time = 0;
+        clk->tick += 1;
+
+        FLAG_SET(EVENT_TICK);
+    }
 }
 
 
@@ -201,11 +231,11 @@ ui_refresh_small(ui_t* ui) {
 }
 
 static void
-ui_refresh_info(ui_t* ui) {
+ui_refresh_help(ui_t* ui) {
     gui_undraw_cursor(ui->printer);
 
     if (FLAG_TEST_AND_CLEAR(EVENT_REDRAW)) {
-        gui_draw_info(ui->printer, &ui->layout.term_lyt);
+        gui_draw_help(ui->printer, &ui->layout.term_lyt);
     }
 }
 
@@ -219,13 +249,13 @@ ui_refresh_room(ui_t* ui) {
         ui_update(ui);
         gui_draw_frame(ui->printer, &lyt->term_lyt);
 
-        FLAG_SET(EVENT_CONN);
+        FLAG_SET(EVENT_HEADER);
         FLAG_SET(EVENT_CHAT);
         FLAG_SET(EVENT_PROMPT);
     }
 
-    if (FLAG_TEST_AND_CLEAR(EVENT_CONN)) {
-        gui_draw_header(ui->printer, &lyt->term_lyt, CONN_STR[ui->status.conn]);
+    if (FLAG_TEST_AND_CLEAR(EVENT_HEADER)) {
+        gui_draw_header(ui->printer, &lyt->term_lyt, ui->status.conn, ui->clock.tick);
     }
 
     if (FLAG_TEST_AND_CLEAR(EVENT_CHAT)) {
@@ -239,136 +269,35 @@ ui_refresh_room(ui_t* ui) {
     unsigned row = lyt->prompt_lyt.row;
     unsigned col = prompt_get_cursor_col(ui->prompt) + SCREEN_PADDING + 1;
 
-    gui_draw_cursor(ui->printer, row, col);
-}
-
-
-/*** methods ***/
-
-void
-ui_init(ui_t** ui) {
-    *ui = malloc(sizeof(ui_t));
-
-    if (*ui == NULL) {
-        error_shutdown("ui err: malloc:");
+    if (ui->status.conn == CONN_ONLINE) {
+        gui_draw_cursor(ui->printer, row, col);
     }
 }
 
-void
-ui_free(ui_t* ui) {
-    free(ui);
-}
 
-void
-ui_stop(ui_t* ui) {
-    cleaner_run(ui->cleaner);
-}
+/*** keypress ***/
 
-void
-ui_start(ui_t* ui) {
-    cleaner_init(&ui->cleaner);
-    cleaner_push(ui->cleaner, (cleaner_fn_t)cleaner_free, ui->cleaner);
-
-    term_init(&ui->term);
-    cleaner_push(ui->cleaner, (cleaner_fn_t)term_free, ui->term);
-
-    printer_init(&ui->printer);
-    cleaner_push(ui->cleaner, (cleaner_fn_t)printer_free, ui->printer);
-
-    prompt_init(&ui->prompt);
-    cleaner_push(ui->cleaner, (cleaner_fn_t)prompt_free, ui->prompt);
-
-    chat_init(&ui->chat);
-    cleaner_push(ui->cleaner, (cleaner_fn_t)chat_free, ui->chat);
-
-    status_init(&ui->status);
-    layout_init(&ui->layout);
-
-    term_enable_rawmode(ui->term);
-    cleaner_push(ui->cleaner, (cleaner_fn_t)term_disable_rawmode, ui->term);
-
-    gui_start();
-    cleaner_push(ui->cleaner, (cleaner_fn_t)gui_stop, NULL);
-}
-
-void
-ui_refresh(ui_t* ui) {
+static ui_signal_t
+ui_handle_keypress_room(ui_t* ui, int key, char* msg_buf) {
     ui_layout_t* lyt = &ui->layout;
     ui_status_t* st = &ui->status;
 
-    if (FLAG_CMP(EVENT_NONE)) {
-        return;
-    }
-
-    if (FLAG_TEST_AND_CLEAR(EVENT_WINCH)) {
-        flag_set_cond(term_get_winsize(&lyt->term_lyt), EVENT_REDRAW);
-
-        if (!minimum_scrsize(&lyt->term_lyt)) {
-            mode_change(st, MODE_SMALL);
-        } else if (st->curr_mode == MODE_SMALL) {
-            mode_change(st, st->prev_mode);
-        }
-    }
-
-    switch (st->curr_mode) {
-        case MODE_ROOM:
-            ui_refresh_room(ui);
-            break;
-        case MODE_INFO:
-            ui_refresh_info(ui);
-            break;
-        case MODE_SMALL:
-            ui_refresh_small(ui);
-            break;
-    }
-
-    printer_dump(ui->printer);
-}
-
-ui_signal_t
-ui_handle_keypress(ui_t* ui, char* msg_buf) {
-    ui_layout_t* lyt = &ui->layout;
-    ui_status_t* st = &ui->status;
-
-    int key = input_read();
-
-    if (key == 0) {
-        return SIGNAL_CONT;
-    }
-
-    if (key == INIT_PASTE) {                        /* discard pasted text */
-        while (input_read() != END_PASTE) {}
-        return SIGNAL_CONT;
-    }
-
-    if (st->curr_mode == MODE_INFO) {
-        if (key == ESCAPE) {
-            mode_change(st, MODE_ROOM);
-        }
-
-        return SIGNAL_CONT;
-    }
-
-    if (st->curr_mode == MODE_SMALL) {
+    if (st->conn != CONN_ONLINE) {
         return SIGNAL_CONT;
     }
 
     if (input_ctrlchr(key) || input_navchr(key)) {
         if (key == ESCAPE) {
-            mode_change(st, MODE_INFO);
+            mode_change(st, MODE_HELP);
             return SIGNAL_CONT;
-
         }
+
         if (key == RETURN) {
-            if (st->conn == CONN_ONLINE) {
-                return flag_set_cond(prompt_edit_send(ui->prompt, msg_buf), EVENT_PROMPT) ? SIGNAL_MSG : SIGNAL_CONT;
+            if (flag_set_cond(prompt_edit_send(ui->prompt, msg_buf), EVENT_PROMPT)) {
+                return  SIGNAL_MSG;
             }
 
             return SIGNAL_CONT;
-        }
-
-        if (key == CNTRL('Q')) {
-            return SIGNAL_QUIT;
         }
 
         int rv;
@@ -468,6 +397,142 @@ ui_handle_keypress(ui_t* ui, char* msg_buf) {
     flag_set_cond(prompt_edit_write(ui->prompt, &lyt->prompt_lyt, unicode, bytes), EVENT_PROMPT);
 
     return SIGNAL_CONT;
+
+}
+
+static ui_signal_t
+ui_handle_keypress_small(void) {
+    return SIGNAL_CONT;
+}
+
+static ui_signal_t
+ui_handle_keypress_help(ui_t* ui, int key) {
+    if (key == ESCAPE) {
+        mode_change(&ui->status, MODE_ROOM);
+    }
+
+    return SIGNAL_CONT;
+}
+
+
+/*** methods ***/
+
+void
+ui_init(ui_t** ui) {
+    *ui = malloc(sizeof(ui_t));
+
+    if (*ui == NULL) {
+        error_shutdown("ui err: malloc:");
+    }
+}
+
+void
+ui_free(ui_t* ui) {
+    free(ui);
+}
+
+void
+ui_stop(ui_t* ui) {
+    cleaner_run(ui->cleaner);
+}
+
+void
+ui_start(ui_t* ui) {
+    cleaner_init(&ui->cleaner);
+    cleaner_push(ui->cleaner, (cleaner_fn_t)cleaner_free, ui->cleaner);
+
+    term_init(&ui->term);
+    cleaner_push(ui->cleaner, (cleaner_fn_t)term_free, ui->term);
+
+    printer_init(&ui->printer);
+    cleaner_push(ui->cleaner, (cleaner_fn_t)printer_free, ui->printer);
+
+    prompt_init(&ui->prompt);
+    cleaner_push(ui->cleaner, (cleaner_fn_t)prompt_free, ui->prompt);
+
+    chat_init(&ui->chat);
+    cleaner_push(ui->cleaner, (cleaner_fn_t)chat_free, ui->chat);
+
+    status_init(&ui->status);
+    layout_init(&ui->layout);
+    clock_init(&ui->clock);
+
+    term_enable_rawmode(ui->term);
+    cleaner_push(ui->cleaner, (cleaner_fn_t)term_disable_rawmode, ui->term);
+
+    gui_start();
+    cleaner_push(ui->cleaner, (cleaner_fn_t)gui_stop, NULL);
+}
+
+void
+ui_refresh(ui_t* ui) {
+    ui_layout_t* lyt = &ui->layout;
+    ui_status_t* st = &ui->status;
+
+    clock_update(&ui->clock);
+
+    if (FLAG_TEST_AND_CLEAR(EVENT_TICK)) {
+        if (ui->status.conn == CONN_OFFLINE) {
+            FLAG_SET(EVENT_HEADER);
+        }
+    }
+
+    if (FLAG_CMP(EVENT_NONE)) {
+        return;
+    }
+
+    if (FLAG_TEST_AND_CLEAR(EVENT_WINCH)) {
+        flag_set_cond(term_get_winsize(&lyt->term_lyt), EVENT_REDRAW);
+
+        if (!minimum_scrsize(&lyt->term_lyt)) {
+            mode_change(st, MODE_SMALL);
+        } else if (st->curr_mode == MODE_SMALL) {
+            mode_change(st, st->prev_mode);
+        }
+    }
+
+    switch (st->curr_mode) {
+        case MODE_ROOM:
+            ui_refresh_room(ui);
+            break;
+        case MODE_HELP:
+            ui_refresh_help(ui);
+            break;
+        case MODE_SMALL:
+            ui_refresh_small(ui);
+            break;
+    }
+
+    printer_dump(ui->printer);
+}
+
+ui_signal_t
+ui_handle_keypress(ui_t* ui, char* msg_buf) {
+    int key = input_read();
+
+    if (key == 0) {                                 /* no input, as input_read is non blocking */
+        return SIGNAL_CONT;
+    }
+
+    if (key == CNTRL('Q')) {
+        return SIGNAL_QUIT;
+    }
+
+    if (key == PASTE_INIT) {                        /* discard pasted text */
+        while (input_read() != PASTE_END) {}
+        return SIGNAL_CONT;
+    }
+
+    switch (ui->status.curr_mode) {
+        case MODE_ROOM:
+            return ui_handle_keypress_room(ui, key, msg_buf);
+        case MODE_HELP:
+            return ui_handle_keypress_help(ui, key);
+        case MODE_SMALL:
+            return ui_handle_keypress_small();
+    }
+
+    return SIGNAL_CONT;
 }
 
 void
@@ -483,5 +548,5 @@ ui_toggle_conn(ui_t *ui) {
     st->conn = st->conn == CONN_ONLINE ?
         CONN_OFFLINE : CONN_ONLINE;
 
-    (void)FLAG_SET(EVENT_CONN);
+    (void)FLAG_SET(EVENT_HEADER);
 }

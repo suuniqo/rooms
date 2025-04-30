@@ -10,4 +10,6 @@
 #define MIN_TERM_ROWS 22
 #define MIN_TERM_COLS 57
 
+#define TICK_SPEED_MS 400
+
 #endif /* !defined(UICONF_H) */

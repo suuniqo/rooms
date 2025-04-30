@@ -2,6 +2,8 @@
 #if !defined(GUI_H)
 #define GUI_H
 
+#include <stdint.h>
+
 #include "../term/term.h"
 #include "../printer/printer.h"
 #include "../prompt/prompt.h"
@@ -31,10 +33,10 @@ extern void
 gui_draw_frame(printer_t* printer, const term_layout_t* lyt);
 
 extern void
-gui_draw_header(printer_t* printer, const term_layout_t* lyt, const char* status);
+gui_draw_header(printer_t* printer, const term_layout_t* lyt, unsigned status_idx, int64_t tick);
 
 extern void
-gui_draw_info(printer_t* printer, const term_layout_t* lyt);
+gui_draw_help(printer_t* printer, const term_layout_t* lyt);
 
 extern void
 gui_draw_scrsmall(printer_t* printer, const term_layout_t* lyt);

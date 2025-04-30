@@ -6,10 +6,8 @@
 #include <pthread.h>
 #include <stdatomic.h>
 #include <stdbool.h>
-#include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <sys/_pthread/_pthread_cond_t.h>
 #include <sys/socket.h>
 #include <unistd.h>
 

@@ -13,4 +13,7 @@ safe_nanosleep(long ns);
 extern int64_t
 safe_rand(void);
 
+extern int64_t
+safe_time_ms(void);
+
 #endif /* !defined(SYSCALL_H) */

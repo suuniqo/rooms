@@ -5,14 +5,12 @@
 #include <fcntl.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <sys/_types/_ssize_t.h>
-#include <sys/fcntl.h>
-#include <sys/types.h>
 #include <unistd.h>
 #include <time.h>
 
 #include "../error/error.h"
 
+#define MS_IN_SC 1000
 
 /*** sleep ***/
 
@@ -52,4 +50,15 @@ safe_rand(void) {
     close(fd);
 
     return rand;
+}
+
+int64_t
+safe_time_ms(void) {
+    struct timespec ts;
+
+    if (clock_gettime(CLOCK_MONOTONIC, &ts) < 0) {
+        error_shutdown("syscall err: clock_gettime");
+    }
+
+    return (ts.tv_sec * MS_IN_SC) + (ts.tv_nsec / ONE_MS);
 }

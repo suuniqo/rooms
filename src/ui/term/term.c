@@ -99,7 +99,7 @@ term_get_winsize(term_layout_t* lyt) {
         prev_ws = curr_ws;
     }
 
-    if (curr_ws.ws_col == lyt->cols && curr_ws.ws_col == lyt->rows) {
+    if (curr_ws.ws_col == lyt->cols && curr_ws.ws_row == lyt->rows) {
         return -1;
     }
 

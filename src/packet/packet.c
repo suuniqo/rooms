@@ -4,7 +4,6 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/_types/_ssize_t.h>
 #include <sys/socket.h>
 #include <time.h>
 #include <stdint.h>

@@ -4,12 +4,18 @@
 #include <assert.h>
 #include <math.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <string.h>
 #include <stdio.h>
 
 #include "../uiconf.h"
 #include "../uifmt.h"
 
+
+const char* const CONN_STR[] = {
+    "online",
+    "reconn",
+};
 
 /*** general ***/
 
@@ -90,18 +96,21 @@ gui_draw_frame(printer_t* printer, const term_layout_t* lyt) {
 }
 
 void
-gui_draw_header(printer_t* printer, const term_layout_t* lyt, const char* status) {
-    printer_append(printer, "\x1b[2;%dH%s%srooms\x1b[%dC%sstatus %s%s\x1b[2;%dH%sesc %shelp",
+gui_draw_header(printer_t* printer, const term_layout_t* lyt, unsigned status_idx, int64_t tick) {
+    const char* status = CONN_STR[status_idx];
+    const unsigned dots = status_idx == 0 ? 0 : (unsigned)(tick % 4);
+
+    printer_append(printer, "\x1b[2;%dH%s%srooms\x1b[%dC%sstatus %s%s%.*s\x1b[2;%dH%sesc %shelp",
             SCREEN_PADDING + 1, CLEAR_RIGHT,
             FONT_FORMAT(COLOR_LIGHT, BOLD),
             (lyt->cols - (2*SCREEN_PADDING) - (sizeof("status ")-1) - strlen(status) - (sizeof("rooms")-1) - (sizeof("esc help")-1))/2,
             FONT_FORMAT(COLOR_DEFAULT, BOLD), FONT_FORMAT(COLOR_DARK, THIN),
-            status, lyt->cols - (sizeof("esc help") - 1) - SCREEN_PADDING,
+            status, dots, "...", lyt->cols - (sizeof("esc help") - 1) - SCREEN_PADDING,
             FONT_FORMAT(COLOR_DEFAULT, BOLD), FONT_FORMAT(COLOR_DARK, THIN));
 }
 
 void
-gui_draw_info(printer_t* printer, const term_layout_t* lyt) {
+gui_draw_help(printer_t* printer, const term_layout_t* lyt) {
     unsigned row = ((lyt->rows - INFO_HEIGHT - HEADER_HEIGHT) / 2) + HEADER_HEIGHT + 1;
     unsigned win = lyt->cols - (2 * SCREEN_PADDING);
 

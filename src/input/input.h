@@ -22,8 +22,8 @@ typedef enum {
   END_KEY,
   PAGE_UP,
   PAGE_DOWN,
-  INIT_PASTE,
-  END_PASTE,
+  PASTE_INIT,
+  PASTE_END,
 } input_key_t;
 
 extern unsigned
