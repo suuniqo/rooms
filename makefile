@@ -45,7 +45,7 @@ $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
 
 zip:
 	mkdir $(ZIP_DIR)
-	zip -r $(ZIP_DIR)/$(NAME).zip .
+	zip -r $(ZIP_DIR)/$(NAME).zip $(SRC_DIR) makefile README.md
 
 dir:
 	@mkdir -p $(BUILD_DIR) $(BIN_DIR)
