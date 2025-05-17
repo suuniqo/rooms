@@ -1,13 +1,13 @@
 
 #include "net.h"
 
+#include <signal.h>
 #include <stdatomic.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <netdb.h>
 #include <arpa/inet.h>
 #include <string.h>
-#include <sys/_pthread/_pthread_cond_t.h>
 #include <sys/socket.h>
 #include <time.h>
 #include <pthread.h>
@@ -40,12 +40,12 @@ get_socket(const char* ip, const char* port) {
     hints.ai_flags = AI_ADDRCONFIG;
 
     if ((rv = getaddrinfo(ip, port, &hints, &ai)) != 0) {
-        error_shutdown("network err: %s\n", gai_strerror(rv));
+        error_shutdown("net err: %s\n", gai_strerror(rv));
     }
 
     for (p = ai; p != NULL; p = p->ai_next) {
         if ((sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) < 0) {
-            error_log("network err: couldn't get socket");
+            error_log("net err: couldn't get socket");
             continue;
         }
 
@@ -53,7 +53,7 @@ get_socket(const char* ip, const char* port) {
             break;
         }
 
-        error_log("network err: couldn't connect");
+        error_log("net err: couldn't connect");
 
         close(sockfd);
         sockfd = -1;
@@ -105,21 +105,6 @@ get_in_addr(struct sockaddr* sa) {
     }
     
     return &(((struct sockaddr_in6*)sa)->sin6_addr);
-}
-
-void
-net_init(net_t** net, const config_t* config) {
-    *net = malloc(sizeof(net_t));
-
-    if (*net == NULL) {
-        error_shutdown("net err: malloc");
-    }
-
-    (*net)->sockfd = get_socket(config->ip, config->port);
-
-    if ((*net)->sockfd == -1) {
-        error_shutdown("network err: failed to connect");
-    }
 }
 
 #define MIN_BACKOFF (ONE_SC / 16)
@@ -182,6 +167,32 @@ net_reconnect(net_t* net, const config_t* config, atomic_bool* retry, pthread_co
     };
 
     pthread_mutex_unlock(mutex);
+}
+
+void
+net_init(net_t** net, const config_t* config) {
+    *net = malloc(sizeof(net_t));
+
+    if (*net == NULL) {
+        error_shutdown("net err: malloc");
+    }
+
+    (*net)->sockfd = get_socket(config->ip, config->port);
+
+    if ((*net)->sockfd == -1) {
+        error_shutdown("net err: failed to connect");
+    }
+
+#if defined(__APPLE__) || defined(__MACH__) /* on macOS SIGPIPE has to be disabled manually */
+    struct sigaction sa;
+    sa.sa_handler = SIG_IGN;
+    sigemptyset(&sa.sa_mask);
+    sa.sa_flags = 0;
+
+    if (sigaction(SIGPIPE, &sa, NULL) < 0) {
+        error_shutdown("net err: sigaction");
+    }
+#endif /* defined(__APPLE__) || defined(__MACH__) */
 }
 
 void

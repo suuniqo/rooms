@@ -543,6 +543,7 @@ ui_handle_msg(ui_t* ui, const packet_t *packet) {
 
 void
 ui_toggle_conn(ui_t *ui) {
+    error_log("im going to toggle this: ");
     ui_status_t* st = &ui->status;
 
     st->conn = st->conn == CONN_ONLINE ?

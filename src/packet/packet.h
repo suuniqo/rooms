@@ -7,46 +7,45 @@
 
 #include "../net/net.h"
 
-#define MAX_PACKET_SIZE 255
-#define MIN_PACKET_SIZE 26
+typedef enum {
+    SIZE_MAGIC      = 6,
+    SIZE_USRNAME    = 12,
+    SIZE_PAYLD_LEN  = 1,
+    SIZE_FLAGS      = 1,
+    SIZE_CHECKSUM   = 4,
+    SIZE_OPTIONS    = 12,
+    SIZE_NONCE      = 8,
+    SIZE_TIMESTAMP  = 8,
+    SIZE_PAYLD      = 255,
+} packet_field_size_t;
 
-#define LEN_SIZE 1
-#define TIME_SIZE 8
-#define USRNAME_SIZE 16
-#define MSG_SIZE 230
+typedef enum {
+    PACKET_SIZE_MIN = 48,
+    PACKET_SIZE_MAX = 303,
+} packet_size_t;
 
 typedef struct packet {
-    uint8_t len;
-    time_t time;
-    char usrname[USRNAME_SIZE + 1];
-    char msg[MSG_SIZE + 1];
+    uint8_t payld_len;
+    uint64_t nonce;
+    uint64_t timestamp;
+    uint8_t flags;
+    char usrname[SIZE_USRNAME + 1];
+    char payld[SIZE_PAYLD + 1];
 } packet_t;
-
-
-/*** encoding ***/
-
-extern void
-packet_encode(const packet_t* packet, uint8_t* net_packet);
-
-extern void
-packet_decode(const uint8_t* net_packet, packet_t* packet);
 
 
 /*** make ***/
 
-extern void
-packet_fill_usrname(packet_t* packet, const char* usrname);
-
-extern void
-packet_seal(packet_t* packet);
+extern packet_t
+packet_build(const char* usrname);
 
 
 /*** send/recv ***/
 
 extern int
-packet_recvall(net_t* net, uint8_t* packet_buf);
+packet_recv(packet_t* packet, net_t* net);
 
 extern int
-packet_sendall(net_t* net, const uint8_t* packet_buf);
+packet_send(packet_t* packet, net_t* net);
 
 #endif /* !defined(PACKET_H) */

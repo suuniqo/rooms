@@ -15,7 +15,7 @@
 #define MSG_WIDTH_RATIO(W) ((W) * 4) / 5
 
 typedef struct {
-    char buf[MSG_HEADER_SIZE + MSG_SIZE + 1];
+    char buf[MSG_HEADER_SIZE + SIZE_PAYLD + 1];
     unsigned header_blen;
     unsigned msg_blen;
     unsigned msg_ulen;

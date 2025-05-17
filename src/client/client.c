@@ -8,6 +8,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <stdlib.h>
+#include <sys/errno.h>
 #include <sys/socket.h>
 #include <unistd.h>
 
@@ -38,6 +39,8 @@ typedef struct client_context {
 } client_context_t;
 
 
+/*** synchronized ***/
+
 static void
 client_locked_enqueue(threads_t* threads, ui_t* ui, packet_t* packet) {
     pthread_mutex_lock(&threads->ui_lock);
@@ -57,26 +60,20 @@ client_locked_refresh(threads_t* threads, ui_t* ui) {
 
 static void
 client_send(client_context_t* ctx, packet_t* packet) {
-    uint8_t packet_buf[MAX_PACKET_SIZE] = {0};
-
-    packet_seal(packet);
-    client_locked_enqueue(ctx->threads, ctx->ui, packet);
-
-    packet_encode(packet, packet_buf);
-
-    if (packet_sendall(ctx->net, packet_buf) < 0) {
+    if (packet_send(packet, ctx->net) < 0) {
         error_log("network err: send");
     }
+
+    client_locked_enqueue(ctx->threads, ctx->ui, packet);
 }
 
 static void
 client_recv(client_context_t* ctx) {
-    uint8_t packet_buf[MAX_PACKET_SIZE] = {0};
     packet_t packet;
 
     threads_t* th = ctx->threads;
 
-    int bytes = packet_recvall(ctx->net, packet_buf);
+    int bytes = packet_recv(&packet, ctx->net);
 
     if (bytes == 0) {                           /* server disconnected */
         ui_toggle_conn(ctx->ui);
@@ -88,9 +85,9 @@ client_recv(client_context_t* ctx) {
 
     if (bytes < 0) {
         switch (errno) {
+            case ETIMEDOUT:
             case ECONNRESET:
                 error_log("network err: recv");
-
                 ui_toggle_conn(ctx->ui);
                 net_reconnect(ctx->net, ctx->config, &th->running, &th->cond, &th->net_lock);
                 ui_toggle_conn(ctx->ui);
@@ -103,11 +100,10 @@ client_recv(client_context_t* ctx) {
         return;
     }
 
-    if (bytes < MIN_PACKET_SIZE) {              /* the packet is discarded */
+    if (bytes < PACKET_SIZE_MIN) {              /* the packet is discarded */
         return;
     }
 
-    packet_decode(packet_buf, &packet);
     client_locked_enqueue(ctx->threads, ctx->ui, &packet);
 }
 
@@ -141,12 +137,10 @@ client_loop_listener(void* ctx_nullable) {
 
 static void
 client_loop_talker(client_context_t* ctx) {
-    packet_t packet;
-
-    packet_fill_usrname(&packet, ctx->config->usrname);
+    packet_t packet = packet_build(ctx->config->usrname);
 
     while (atomic_load(&ctx->threads->running)) {
-        ui_signal_t rv = ui_handle_keypress(ctx->ui, packet.msg);
+        ui_signal_t rv = ui_handle_keypress(ctx->ui, packet.payld);
 
         if (rv == SIGNAL_QUIT) {
             client_stop_listener(ctx->threads, ctx->net);

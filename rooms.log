@@ -1,23 +1,364 @@
-[ERROR][2025-04-30 14:50:05] network err: couldn't connect: Connection refused (61)
-[ERROR][2025-04-30 14:50:05] network err: couldn't connect: Connection refused (61)
-[ERROR][2025-04-30 14:50:05] network err: couldn't connect: Connection refused (61)
-[ERROR][2025-04-30 14:50:05] network err: couldn't connect: Connection refused (61)
-[ERROR][2025-04-30 14:50:05] network err: couldn't connect: Connection refused (61)
-[ERROR][2025-04-30 14:50:05] network err: couldn't connect: Connection refused (61)
-[ERROR][2025-04-30 14:50:05] network err: couldn't connect: Connection refused (61)
-[ERROR][2025-04-30 14:50:05] network err: couldn't connect: Connection refused (61)
-[ERROR][2025-04-30 14:50:05] network err: couldn't connect: Connection refused (61)
-[ERROR][2025-04-30 14:50:05] network err: couldn't connect: Connection refused (61)
-[ERROR][2025-04-30 14:50:05] network err: couldn't connect: Connection refused (61)
-[ERROR][2025-04-30 14:50:05] network err: couldn't connect: Connection refused (61)
-[ERROR][2025-04-30 14:50:05] network err: couldn't connect: Connection refused (61)
-[ERROR][2025-04-30 14:50:05] network err: couldn't connect: Connection refused (61)
-[ERROR][2025-04-30 14:50:05] network err: couldn't connect: Connection refused (61)
-[ERROR][2025-04-30 14:50:05] network err: couldn't connect: Connection refused (61)
-[ERROR][2025-04-30 14:50:05] network err: couldn't connect: Connection refused (61)
-[ERROR][2025-04-30 14:50:05] network err: couldn't connect: Connection refused (61)
-[ERROR][2025-04-30 14:50:05] network err: couldn't connect: Connection refused (61)
-[ERROR][2025-04-30 14:50:05] network err: couldn't connect: Connection refused (61)
-[ERROR][2025-04-30 14:50:06] network err: couldn't connect: Connection refused (61)
-[ERROR][2025-04-30 14:50:09] network err: couldn't connect: Connection refused (61)
-[ERROR][2025-04-30 14:50:13] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-02 23:00:23] send: calling now
+[ERROR][2025-05-02 23:00:23] send: returned 29
+[ERROR][2025-05-02 23:00:41] network err: recv: Operation timed out (60)
+[ERROR][2025-05-02 23:07:17] network err: recv: Operation timed out (60)
+[ERROR][2025-05-02 23:07:17] im going to toggle this: 
+[ERROR][2025-05-02 23:07:17] finished toggling
+[ERROR][2025-05-02 23:07:17] network err: couldn't connect: Network is unreachable (51)
+[ERROR][2025-05-02 23:07:17] network err: couldn't connect: Network is unreachable (51)
+[ERROR][2025-05-02 23:07:17] network err: couldn't connect: Network is unreachable (51)
+[ERROR][2025-05-02 23:07:17] network err: couldn't connect: Network is unreachable (51)
+[ERROR][2025-05-02 23:07:17] network err: couldn't connect: Network is unreachable (51)
+[ERROR][2025-05-02 23:07:17] network err: couldn't connect: Network is unreachable (51)
+[ERROR][2025-05-02 23:07:17] network err: couldn't connect: Network is unreachable (51)
+[ERROR][2025-05-02 23:07:17] network err: couldn't connect: Network is unreachable (51)
+[ERROR][2025-05-02 23:07:17] network err: couldn't connect: Network is unreachable (51)
+[ERROR][2025-05-02 23:07:17] network err: couldn't connect: Network is unreachable (51)
+[ERROR][2025-05-02 23:07:17] network err: couldn't connect: Network is unreachable (51)
+[ERROR][2025-05-02 23:07:17] network err: couldn't connect: Network is unreachable (51)
+[ERROR][2025-05-02 23:07:17] network err: couldn't connect: Network is unreachable (51)
+[ERROR][2025-05-02 23:07:17] network err: couldn't connect: Network is unreachable (51)
+[ERROR][2025-05-02 23:07:17] network err: couldn't connect: Network is unreachable (51)
+[ERROR][2025-05-02 23:07:17] network err: couldn't connect: Network is unreachable (51)
+[ERROR][2025-05-02 23:07:17] network err: couldn't connect: Network is unreachable (51)
+[ERROR][2025-05-02 23:07:17] network err: couldn't connect: Network is unreachable (51)
+[ERROR][2025-05-02 23:07:18] network err: couldn't connect: Network is unreachable (51)
+[ERROR][2025-05-02 23:07:18] network err: couldn't connect: Network is unreachable (51)
+[ERROR][2025-05-02 23:07:19] network err: couldn't connect: Network is unreachable (51)
+[ERROR][2025-05-02 23:07:21] network err: recv: Operation timed out (60)
+[ERROR][2025-05-02 23:07:21] im going to toggle this: 
+[ERROR][2025-05-02 23:07:21] finished toggling
+[ERROR][2025-05-02 23:07:21] network err: couldn't connect: Network is unreachable (51)
+[ERROR][2025-05-02 23:07:21] network err: couldn't connect: Network is unreachable (51)
+[ERROR][2025-05-02 23:07:21] network err: couldn't connect: Network is unreachable (51)
+[ERROR][2025-05-02 23:07:21] network err: couldn't connect: Network is unreachable (51)
+[ERROR][2025-05-02 23:07:21] network err: couldn't connect: Network is unreachable (51)
+[ERROR][2025-05-02 23:07:21] network err: couldn't connect: Network is unreachable (51)
+[ERROR][2025-05-02 23:07:21] network err: couldn't connect: Network is unreachable (51)
+[ERROR][2025-05-02 23:07:21] network err: couldn't connect: Network is unreachable (51)
+[ERROR][2025-05-02 23:07:21] network err: couldn't connect: Network is unreachable (51)
+[ERROR][2025-05-02 23:07:21] network err: couldn't connect: Network is unreachable (51)
+[ERROR][2025-05-02 23:07:21] network err: couldn't connect: Network is unreachable (51)
+[ERROR][2025-05-02 23:07:21] network err: couldn't connect: Network is unreachable (51)
+[ERROR][2025-05-02 23:07:21] network err: couldn't connect: Network is unreachable (51)
+[ERROR][2025-05-02 23:07:21] network err: couldn't connect: Network is unreachable (51)
+[ERROR][2025-05-02 23:07:21] network err: couldn't connect: Network is unreachable (51)
+[ERROR][2025-05-02 23:07:21] network err: couldn't connect: Network is unreachable (51)
+[ERROR][2025-05-02 23:07:21] network err: couldn't connect: Network is unreachable (51)
+[ERROR][2025-05-02 23:07:21] network err: couldn't connect: Network is unreachable (51)
+[ERROR][2025-05-02 23:07:21] network err: couldn't connect: Network is unreachable (51)
+[ERROR][2025-05-02 23:07:21] network err: couldn't connect: Network is unreachable (51)
+[ERROR][2025-05-02 23:07:22] network err: couldn't connect: Network is unreachable (51)
+[ERROR][2025-05-02 23:07:23] network err: couldn't connect: Network is unreachable (51)
+[ERROR][2025-05-02 23:07:25] network err: couldn't connect: Network is unreachable (51)
+[ERROR][2025-05-02 23:07:25] network err: couldn't connect: Network is unreachable (51)
+[ERROR][2025-05-02 23:07:29] network err: couldn't connect: Network is unreachable (51)
+[ERROR][2025-05-02 23:07:33] im going to toggle this: :  (316)
+[ERROR][2025-05-02 23:07:33] finished toggling
+[ERROR][2025-05-02 23:07:37] im going to toggle this: :  (316)
+[ERROR][2025-05-02 23:07:37] finished toggling
+[ERROR][2025-05-04 16:03:14] im going to toggle this: 
+[ERROR][2025-05-04 16:03:14] finished toggling
+[ERROR][2025-05-04 16:03:14] im going to toggle this: 
+[ERROR][2025-05-04 16:03:14] finished toggling
+[ERROR][2025-05-04 16:15:53] im going to toggle this: 
+[ERROR][2025-05-04 16:15:53] finished toggling
+[ERROR][2025-05-04 16:15:53] im going to toggle this: 
+[ERROR][2025-05-04 16:15:53] finished toggling
+[ERROR][2025-05-04 16:15:54] im going to toggle this: 
+[ERROR][2025-05-04 16:15:54] finished toggling
+[ERROR][2025-05-04 16:15:54] im going to toggle this: 
+[ERROR][2025-05-04 16:15:54] finished toggling
+[ERROR][2025-05-04 16:23:11] im going to toggle this: 
+[ERROR][2025-05-04 16:23:11] im going to toggle this: 
+[ERROR][2025-05-04 16:23:11] im going to toggle this: 
+[ERROR][2025-05-04 16:23:11] finished toggling
+[ERROR][2025-05-04 16:23:11] finished toggling
+[ERROR][2025-05-04 16:23:11] finished toggling
+[ERROR][2025-05-04 16:23:11] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 16:23:11] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 16:23:11] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 16:23:11] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 16:23:11] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 16:23:11] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 16:23:11] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 16:23:11] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 16:23:11] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 16:23:11] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 16:23:11] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 16:23:11] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 16:23:11] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 16:23:11] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 16:23:11] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 16:23:11] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 16:23:11] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 16:23:11] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 16:23:11] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 16:23:11] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 16:23:11] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 16:23:11] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 16:23:11] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 16:23:11] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 16:23:11] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 16:23:11] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 16:23:11] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 16:23:11] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 16:23:11] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 16:23:11] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 16:23:11] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 16:23:11] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 16:23:11] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 16:23:11] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 16:23:11] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 16:23:11] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 16:23:11] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 16:23:11] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 16:23:11] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 16:23:11] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 16:23:11] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 16:23:11] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 16:23:11] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 16:23:11] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 16:23:11] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 16:23:11] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 16:23:11] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 16:23:11] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 16:23:11] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 16:23:11] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 16:23:11] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 16:23:12] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 16:23:12] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 16:23:12] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 16:23:12] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 16:23:12] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 16:23:12] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 16:23:12] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 16:23:12] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 16:23:12] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 16:23:13] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 16:23:13] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 16:23:13] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 16:23:15] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 16:23:15] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 16:23:15] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 16:23:19] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 16:23:19] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 16:23:20] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 16:23:26] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 16:23:26] network err: failed to connect
+[ERROR][2025-05-04 16:23:27] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 16:23:28] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 16:23:28] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 16:23:43] im going to toggle this: :  (316)
+[ERROR][2025-05-04 16:23:43] finished toggling
+[ERROR][2025-05-04 16:23:43] im going to toggle this: :  (316)
+[ERROR][2025-05-04 16:23:43] finished toggling
+[ERROR][2025-05-04 16:23:44] im going to toggle this: :  (316)
+[ERROR][2025-05-04 16:23:44] finished toggling
+[ERROR][2025-05-04 20:21:41] im going to toggle this: 
+[ERROR][2025-05-04 20:21:41] finished toggling
+[ERROR][2025-05-04 20:21:41] im going to toggle this: 
+[ERROR][2025-05-04 20:21:41] finished toggling
+[ERROR][2025-05-04 20:21:44] im going to toggle this: 
+[ERROR][2025-05-04 20:21:44] finished toggling
+[ERROR][2025-05-04 20:21:44] im going to toggle this: 
+[ERROR][2025-05-04 20:21:44] finished toggling
+[ERROR][2025-05-04 20:21:47] im going to toggle this: 
+[ERROR][2025-05-04 20:21:47] finished toggling
+[ERROR][2025-05-04 20:21:47] im going to toggle this: 
+[ERROR][2025-05-04 20:21:47] finished toggling
+[ERROR][2025-05-04 20:29:19] im going to toggle this: 
+[ERROR][2025-05-04 20:29:19] im going to toggle this: 
+[ERROR][2025-05-04 20:29:19] finished toggling
+[ERROR][2025-05-04 20:29:19] im going to toggle this: 
+[ERROR][2025-05-04 20:29:19] finished toggling
+[ERROR][2025-05-04 20:29:19] finished toggling
+[ERROR][2025-05-04 20:29:19] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:29:19] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:29:19] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:29:19] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:29:19] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:29:19] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:29:19] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:29:19] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:29:19] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:29:19] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:29:19] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:29:19] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:29:19] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:29:19] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:29:19] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:29:19] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:29:19] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:29:19] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:29:19] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:29:19] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:29:19] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:29:19] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:29:19] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:29:19] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:29:19] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:29:19] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:29:19] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:29:19] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:29:19] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:29:19] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:29:19] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:29:19] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:29:19] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:29:19] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:29:19] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:29:19] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:29:19] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:29:19] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:29:19] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:29:19] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:29:19] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:29:19] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:29:19] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:29:19] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:29:19] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:29:19] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:29:19] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:29:19] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:29:19] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:29:19] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:29:19] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:29:19] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:29:19] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:29:19] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:29:19] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:29:19] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:29:19] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:29:20] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:29:20] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:29:20] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:29:21] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:29:21] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:29:21] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:29:22] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:29:23] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:29:23] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:29:26] im going to toggle this: :  (316)
+[ERROR][2025-05-04 20:29:26] finished toggling
+[ERROR][2025-05-04 20:29:27] im going to toggle this: :  (316)
+[ERROR][2025-05-04 20:29:27] finished toggling
+[ERROR][2025-05-04 20:29:27] im going to toggle this: :  (316)
+[ERROR][2025-05-04 20:29:27] finished toggling
+[ERROR][2025-05-04 20:35:28] im going to toggle this: 
+[ERROR][2025-05-04 20:35:28] im going to toggle this: 
+[ERROR][2025-05-04 20:35:28] im going to toggle this: 
+[ERROR][2025-05-04 20:35:28] finished toggling
+[ERROR][2025-05-04 20:35:28] finished toggling
+[ERROR][2025-05-04 20:35:28] finished toggling
+[ERROR][2025-05-04 20:35:28] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:35:28] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:35:28] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:35:28] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:35:28] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:35:28] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:35:28] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:35:28] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:35:28] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:35:28] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:35:28] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:35:28] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:35:28] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:35:28] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:35:28] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:35:28] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:35:28] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:35:28] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:35:28] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:35:28] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:35:28] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:35:28] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:35:28] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:35:28] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:35:28] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:35:28] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:35:28] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:35:28] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:35:28] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:35:28] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:35:28] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:35:28] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:35:28] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:35:28] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:35:28] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:35:28] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:35:28] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:35:28] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:35:28] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:35:28] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:35:28] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:35:28] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:35:28] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:35:28] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:35:28] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:35:28] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:35:28] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:35:28] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:35:28] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:35:28] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:35:28] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:35:29] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:35:29] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:35:29] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:35:29] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:35:29] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:35:29] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:35:29] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:35:29] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:35:29] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:35:30] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:35:30] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:35:30] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:35:32] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:35:32] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:35:32] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:35:36] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:35:37] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:35:37] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:35:44] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:35:45] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:35:45] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:36:00] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:36:00] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:36:02] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:36:15] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:36:16] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:36:18] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:36:30] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:36:34] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:36:35] network err: couldn't connect: Connection refused (61)
+[ERROR][2025-05-04 20:36:48] im going to toggle this: :  (316)
+[ERROR][2025-05-04 20:36:48] finished toggling
+[ERROR][2025-05-04 20:36:49] im going to toggle this: :  (316)
+[ERROR][2025-05-04 20:36:49] finished toggling
+[ERROR][2025-05-04 20:36:52] im going to toggle this: :  (316)
+[ERROR][2025-05-04 20:36:52] finished toggling
+[ERROR][2025-05-04 20:39:06] im going to toggle this: 
+[ERROR][2025-05-04 20:39:06] finished toggling
+[ERROR][2025-05-04 20:39:06] im going to toggle this: 
+[ERROR][2025-05-04 20:39:06] finished toggling
+[ERROR][2025-05-04 20:49:21] im going to toggle this: 
+[ERROR][2025-05-04 20:49:21] finished toggling
+[ERROR][2025-05-04 20:49:21] im going to toggle this: 
+[ERROR][2025-05-04 20:49:21] finished toggling
+[ERROR][2025-05-04 21:05:22] im going to toggle this: 
+[ERROR][2025-05-04 21:05:22] finished toggling
+[ERROR][2025-05-04 21:05:22] im going to toggle this: 
+[ERROR][2025-05-04 21:05:22] finished toggling
+[ERROR][2025-05-04 21:12:41] im going to toggle this: 
+[ERROR][2025-05-04 21:12:41] finished toggling
+[ERROR][2025-05-04 21:12:41] im going to toggle this: 
+[ERROR][2025-05-04 21:12:41] finished toggling
+[ERROR][2025-05-04 21:12:43] im going to toggle this: 
+[ERROR][2025-05-04 21:12:43] finished toggling
+[ERROR][2025-05-04 21:12:43] im going to toggle this: 
+[ERROR][2025-05-04 21:12:43] finished toggling
+[ERROR][2025-05-04 21:13:09] im going to toggle this: 
+[ERROR][2025-05-04 21:13:09] finished toggling
+[ERROR][2025-05-04 21:13:09] im going to toggle this: 
+[ERROR][2025-05-04 21:13:09] finished toggling

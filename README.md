@@ -15,14 +15,38 @@ rooms is fast, realiable and pretty.
 +--------+----------+-------------------+---------------+
  <-------------------- [26, 255] B -------------------->
 
-this is the rooms header format
+this is the rooms header format:
+
+ <---- 6B ----> <------- 12B -------->
++--------------+----------------------+
+|     magic    |        usrname       |
++---+---+------+----------------------+
+| l | f | chks |       options        |
++---+---+------+--+-------------------+
+|      nonce      |     timestamp     |
++-----------------+-------------------+
+|                                     :
+:              payload                :
+:                                     |
++-------------------------------------+
+ <-------------- 16B ---------------->
+
+ <- 1B -> <- 8B -> <-- 8B --> <------ 16B ------> <--- 1B ---> <- [1,221] B ->
++--------+--------+----------+-------------------+------------+---------------+
+| length | msg id | msg time | usrname + padding | flag field | payload (msg) |
++--------+--------+----------+-------------------+------------+---------------+
+ <------------------------------ [34, 255] B -------------------------------->
+
+this is the flag field format:
+
+  1b     1b    1b      1b     1b     1b     1b    1b
++-----+-----+------+-------+------+------+------+----+
+| MSG | ACK | JOIN | LEAVE | WHSP | PING | PONG | NU |
++-----+-----+------+-------+------+------+------+----+
+ <----------------------- 1B ----------------------->
+ 
 
 
- <- 1B -> <-- 8B --> <------ 16B ------> <--- 1B ---> <- [1,230] B ->
-+--------+----------+-------------------+------------+---------------+
-| length | msg time | usrname + padding | flag field | payload (msg) |
-+--------+----------+-------------------+------------+---------------+
- <-------------------------- [26, 255] B --------------------------->
 
 next version?
 
@@ -30,7 +54,6 @@ next version?
 ## TODO
 
 - scrolling in help section
-- better chat scrolling
 - add join and left messages, no repeated users, and whisper feature?
 - polish -> v0.1
 - encryption
@@ -42,7 +65,7 @@ next version?
 
 - add flag field
 - add formating (bold and cursive)
-- end to end encryption with MLS
+- ee2e with MLS
 
 
 ## watch out

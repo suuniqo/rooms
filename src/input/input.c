@@ -96,11 +96,11 @@ input_read(void) {
                     }
 
                     if (seq[3] == '0' && seq[4] == '~') {
-                        return INIT_PASTE;
+                        return PASTE_INIT;
                     }
                     
                     if (seq[3] == '1' && seq[4] == '~') {
-                        return END_PASTE;
+                        return PASTE_END;
                     }
                 }
             } else {
