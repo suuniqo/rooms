@@ -1,9 +1,10 @@
 .DS_Store
 .clangd
 .clang-tidy
+.cache
 
 compile_commands.json
-rooms_log.txt
+rooms.log
 
 /build/
 /bin/
