@@ -1,5 +1,6 @@
 .DS_Store
 .clangd
+.clang-tidy
 
 compile_commands.json
 rooms_log.txt
