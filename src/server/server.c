@@ -121,7 +121,7 @@ server(void) {
     struct sockaddr_storage remoteaddr; /* Client address */
     socklen_t addrlen;
 
-    char buf[MAX_PACKET_SIZE];          /* Buffer for client data */ 
+    char buf[PACKET_SIZE_MAX];          /* Buffer for client data */ 
     char remoteIP[INET6_ADDRSTRLEN];
 
     pfds_t* pfds = init_pfds();

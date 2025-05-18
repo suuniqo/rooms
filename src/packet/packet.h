@@ -9,11 +9,11 @@
 
 typedef enum {
     SIZE_MAGIC      = 6,
-    SIZE_USRNAME    = 12,
+    SIZE_USRNAME    = 10,
     SIZE_PAYLD_LEN  = 1,
     SIZE_FLAGS      = 1,
-    SIZE_CHECKSUM   = 4,
-    SIZE_OPTIONS    = 12,
+    SIZE_CRC        = 4,
+    SIZE_OPTIONS    = 10,
     SIZE_NONCE      = 8,
     SIZE_TIMESTAMP  = 8,
     SIZE_PAYLD      = 255,
@@ -24,12 +24,25 @@ typedef enum {
     PACKET_SIZE_MAX = 303,
 } packet_size_t;
 
+typedef enum {
+    PACKET_FLAG_MSG  = 1 << 0,
+    PACKET_FLAG_ACK  = 1 << 1,
+    PACKET_FLAG_WHSP = 1 << 2,
+    PACKET_FLAG_JOIN = 1 << 3,
+    PACKET_FLAG_EXIT = 1 << 4,
+    PACKET_FLAG_PING = 1 << 5,
+    PACKET_FLAG_PONG = 1 << 6,
+} packet_flags_t;
+
 typedef struct packet {
     uint8_t payld_len;
+    uint8_t flags;
+    uint32_t crc;
     uint64_t nonce;
     uint64_t timestamp;
-    uint8_t flags;
+    char magic[SIZE_MAGIC + 1];
     char usrname[SIZE_USRNAME + 1];
+    char options[SIZE_USRNAME + 1];
     char payld[SIZE_PAYLD + 1];
 } packet_t;
 
@@ -43,9 +56,9 @@ packet_build(const char* usrname);
 /*** send/recv ***/
 
 extern int
-packet_recv(packet_t* packet, net_t* net);
+packet_recv(packet_t* packet, const net_t* net);
 
 extern int
-packet_send(packet_t* packet, net_t* net);
+packet_send(packet_t* packet, const net_t* net);
 
 #endif /* !defined(PACKET_H) */

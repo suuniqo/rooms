@@ -17,7 +17,7 @@ rooms is fast, realiable and pretty.
 
 this is the rooms header format:
 
- <---- 6B ----> <------- 12B -------->
+ <---- 6B ----> <------- 10B -------->
 +--------------+----------------------+
 |     magic    |        usrname       |
 +---+---+------+----------------------+

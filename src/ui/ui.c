@@ -282,6 +282,7 @@ ui_handle_keypress_room(ui_t* ui, int key, char* msg_buf) {
     ui_layout_t* lyt = &ui->layout;
     ui_status_t* st = &ui->status;
 
+    // TODO remove this and manage unsent packets
     if (st->conn != CONN_ONLINE) {
         return SIGNAL_CONT;
     }
@@ -543,7 +544,6 @@ ui_handle_msg(ui_t* ui, const packet_t *packet) {
 
 void
 ui_toggle_conn(ui_t *ui) {
-    error_log("im going to toggle this: ");
     ui_status_t* st = &ui->status;
 
     st->conn = st->conn == CONN_ONLINE ?

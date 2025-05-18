@@ -11,6 +11,7 @@ typedef enum role {
     ROLE_JOIN,
 } rooms_role_t;
 
+
 #define ARGC_CLIENT(argc) ((argc) == 4 || (argc) == 5)
 #define ARGC_SERVER(argc) ((argc) == 2)
 
@@ -27,6 +28,7 @@ get_role(int argc, char** argv) {
     fprintf(stderr, "usage:\nrooms host\nrooms join <usrname> <ip>\n");
     exit(1);
 }
+
 
 int
 main(int argc, char** argv) {

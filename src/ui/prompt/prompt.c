@@ -23,7 +23,7 @@ typedef struct {
 } prompt_scroll_t;
 
 typedef struct {
-    char buf[MSG_SIZE];
+    char buf[SIZE_PAYLD];
     unsigned blen;
     unsigned ulen;
 } prompt_input_t;

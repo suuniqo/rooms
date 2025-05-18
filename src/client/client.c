@@ -69,7 +69,7 @@ client_send(client_context_t* ctx, packet_t* packet) {
 
 static void
 client_recv(client_context_t* ctx) {
-    packet_t packet;
+    packet_t packet = {0};
 
     threads_t* th = ctx->threads;
 
@@ -97,10 +97,6 @@ client_recv(client_context_t* ctx) {
                 break;
         }
 
-        return;
-    }
-
-    if (bytes < PACKET_SIZE_MIN) {              /* the packet is discarded */
         return;
     }
 
