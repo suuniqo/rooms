@@ -155,7 +155,6 @@ magic_find(const uint8_t* noise, const uint8_t* magic, unsigned noise_size, unsi
 
     for (unsigned i = 0; i <= noise_size - magic_size; ++i) {
         if (memcmp(noise + i, magic, magic_size) == 0) {
-            error_log("found magic!");
             return noise + i;
         }
     }
