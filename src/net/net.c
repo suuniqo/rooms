@@ -1,6 +1,7 @@
 
 #include "net.h"
 
+#include <errno.h>
 #include <signal.h>
 #include <stdatomic.h>
 #include <stdint.h>
@@ -26,6 +27,56 @@
 
 
 /*** aux ***/
+
+int
+sendall(const net_t* net, const uint8_t* buf, unsigned len) {
+    ssize_t n = 0;
+    ssize_t sent = 0;
+
+    do {
+        n = send(net->sockfd, buf + sent, (size_t)(len - sent), MSG_NOSIGNAL);
+
+        if (n == -1 && errno == EINTR) {
+            error_log("net err: send");
+            continue;
+        }
+
+        if (n <= 0) {
+            return (int)n;
+        }
+
+        sent += n;
+
+    } while (sent < len);
+
+    return (int)sent;
+}
+
+int
+recvall(const net_t* net, uint8_t* buf, unsigned len) {
+    ssize_t n = 0;
+    ssize_t recvd = 0;
+
+     do {
+        n = recv(net->sockfd, buf + recvd, (size_t)(len - recvd), MSG_WAITALL);
+
+        if (n == -1 && errno == EINTR) {
+            error_log("net err: recv");
+            continue;
+        }
+
+        if (n <= 0) {
+            return (int)n;
+        }
+
+        recvd += n;
+
+    } while (recvd < len);
+
+    return (int)recvd;
+}
+
+
 
 static int
 get_socket(const char* ip, const char* port) {

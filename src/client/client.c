@@ -6,6 +6,7 @@
 #include <pthread.h>
 #include <stdatomic.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <string.h>
 #include <stdlib.h>
 #include <sys/errno.h>
@@ -59,9 +60,9 @@ client_locked_refresh(threads_t* threads, ui_t* ui) {
 /*** network ***/
 
 static void
-client_send(client_context_t* ctx, packet_t* packet) {
-    if (packet_send(packet, ctx->net) < 0) {
-        error_log("network err: send");
+client_send(client_context_t* ctx, packet_t* packet, uint8_t flags) {
+    if (packet_send(packet, ctx->net, flags) < 0) {
+        error_shutdown("network err: send");
     }
 
     client_locked_enqueue(ctx->threads, ctx->ui, packet);
@@ -83,7 +84,7 @@ client_recv(client_context_t* ctx) {
         return;
     }
 
-    if (bytes < 0) {
+    if (bytes == -1) {
         switch (errno) {
             case ETIMEDOUT:
             case ECONNRESET:
@@ -97,6 +98,11 @@ client_recv(client_context_t* ctx) {
                 break;
         }
 
+        return;
+    }
+
+    if (bytes == -2) {
+        error_log("network err: discarded packet");
         return;
     }
 
@@ -135,16 +141,19 @@ static void
 client_loop_talker(client_context_t* ctx) {
     packet_t packet = packet_build(ctx->config->usrname);
 
+    client_send(ctx, &packet, PACKET_FLAG_JOIN);
+
     while (atomic_load(&ctx->threads->running)) {
         ui_signal_t rv = ui_handle_keypress(ctx->ui, packet.payld);
 
         if (rv == SIGNAL_QUIT) {
+            client_send(ctx, &packet, PACKET_FLAG_EXIT);
             client_stop_listener(ctx->threads, ctx->net);
             break;
         }
 
         if (rv == SIGNAL_MSG) {
-            client_send(ctx, &packet);
+            client_send(ctx, &packet, PACKET_FLAG_MSG);
         }
 
         client_locked_refresh(ctx->threads, ctx->ui);

@@ -8,16 +8,28 @@
 #include "../net/net.h"
 
 typedef enum {
-    SIZE_MAGIC      = 6,
-    SIZE_USRNAME    = 10,
-    SIZE_PAYLD_LEN  = 1,
-    SIZE_FLAGS      = 1,
-    SIZE_CRC        = 4,
-    SIZE_OPTIONS    = 10,
-    SIZE_NONCE      = 8,
-    SIZE_TIMESTAMP  = 8,
-    SIZE_PAYLD      = 255,
+    SIZE_MAGIC     = 6,
+    SIZE_USRNAME   = 10,
+    SIZE_PAYLD_LEN = 1,
+    SIZE_FLAGS     = 1,
+    SIZE_CRC       = 4,
+    SIZE_OPTIONS   = 10,
+    SIZE_NONCE     = 8,
+    SIZE_TIMESTAMP = 8,
+    SIZE_PAYLD     = 255,
 } packet_field_size_t;
+
+typedef enum {
+    OFFSET_MAGIC     = 0,
+    OFFSET_USRNAME   = 6,
+    OFFSET_PAYLD_LEN = 16,
+    OFFSET_FLAGS     = 17,
+    OFFSET_CRC       = 18,
+    OFFSET_OPTIONS   = 22,
+    OFFSET_NONCE     = 32,
+    OFFSET_TIMESTAMP = 40,
+    OFFSET_PAYLD     = 48,
+} packet_field_offset_t;
 
 typedef enum {
     PACKET_SIZE_MIN = 48,
@@ -40,7 +52,6 @@ typedef struct packet {
     uint32_t crc;
     uint64_t nonce;
     uint64_t timestamp;
-    char magic[SIZE_MAGIC + 1];
     char usrname[SIZE_USRNAME + 1];
     char options[SIZE_USRNAME + 1];
     char payld[SIZE_PAYLD + 1];
@@ -59,6 +70,6 @@ extern int
 packet_recv(packet_t* packet, const net_t* net);
 
 extern int
-packet_send(packet_t* packet, const net_t* net);
+packet_send(packet_t* packet, const net_t* net, uint8_t flags);
 
 #endif /* !defined(PACKET_H) */

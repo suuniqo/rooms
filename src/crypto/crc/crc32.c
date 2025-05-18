@@ -8,26 +8,26 @@
 
 #define CRC32_POLYNOMIAL 0xEDB88320
 
-#define CRC32_BYTE(value) \
+#define CRC32_SHIFT(value) \
     (((value) & 1) ? (((value) >> 1) ^ CRC32_POLYNOMIAL) : ((value) >> 1))
 
 #define CRC32_BYTE_ITER0(value) (value)
-#define CRC32_BYTE_ITER1(value) CRC32_BYTE_ITER0(CRC32_BYTE((value)))
-#define CRC32_BYTE_ITER2(value) CRC32_BYTE_ITER1(CRC32_BYTE((value)))
-#define CRC32_BYTE_ITER3(value) CRC32_BYTE_ITER2(CRC32_BYTE((value)))
-#define CRC32_BYTE_ITER4(value) CRC32_BYTE_ITER3(CRC32_BYTE((value)))
-#define CRC32_BYTE_ITER5(value) CRC32_BYTE_ITER4(CRC32_BYTE((value)))
-#define CRC32_BYTE_ITER6(value) CRC32_BYTE_ITER5(CRC32_BYTE((value)))
-#define CRC32_BYTE_ITER7(value) CRC32_BYTE_ITER6(CRC32_BYTE((value)))
-#define CRC32_BYTE_ITER8(value) CRC32_BYTE_ITER7(CRC32_BYTE((value)))
+#define CRC32_BYTE_ITER1(value) CRC32_BYTE_ITER0(CRC32_SHIFT((value)))
+#define CRC32_BYTE_ITER2(value) CRC32_BYTE_ITER1(CRC32_SHIFT((value)))
+#define CRC32_BYTE_ITER3(value) CRC32_BYTE_ITER2(CRC32_SHIFT((value)))
+#define CRC32_BYTE_ITER4(value) CRC32_BYTE_ITER3(CRC32_SHIFT((value)))
+#define CRC32_BYTE_ITER5(value) CRC32_BYTE_ITER4(CRC32_SHIFT((value)))
+#define CRC32_BYTE_ITER6(value) CRC32_BYTE_ITER5(CRC32_SHIFT((value)))
+#define CRC32_BYTE_ITER7(value) CRC32_BYTE_ITER6(CRC32_SHIFT((value)))
+#define CRC32_BYTE_ITER8(value) CRC32_BYTE_ITER7(CRC32_SHIFT((value)))
 
 #define CRC32_TABLE_ENTRY(idx) CRC32_BYTE_ITER8((idx))
 
 #define CRC32_TABLE_ROW(base) \
-    CRC32_TABLE_ENTRY((base + 0)), CRC32_TABLE_ENTRY((base + 1)), \
-    CRC32_TABLE_ENTRY((base + 2)), CRC32_TABLE_ENTRY((base + 3)), \
-    CRC32_TABLE_ENTRY((base + 4)), CRC32_TABLE_ENTRY((base + 5)), \
-    CRC32_TABLE_ENTRY((base + 6)), CRC32_TABLE_ENTRY((base + 7))
+    CRC32_TABLE_ENTRY((base) + 0), CRC32_TABLE_ENTRY((base) + 1), \
+    CRC32_TABLE_ENTRY((base) + 2), CRC32_TABLE_ENTRY((base) + 3), \
+    CRC32_TABLE_ENTRY((base) + 4), CRC32_TABLE_ENTRY((base) + 5), \
+    CRC32_TABLE_ENTRY((base) + 6), CRC32_TABLE_ENTRY((base) + 7)
 
 static const uint32_t crc32_table[256] = {
     CRC32_TABLE_ROW(0x00), CRC32_TABLE_ROW(0x08), CRC32_TABLE_ROW(0x10), CRC32_TABLE_ROW(0x18),
@@ -43,13 +43,16 @@ static const uint32_t crc32_table[256] = {
 
 /*** generate ***/
 
-uint32_t
-crc32_generate(const char *buffer, size_t size) {
-        uint32_t crc = 0xFFFFFFFF;
+#define INITIAL_FILLER 0xFFFFFFFF
+#define FIRST_BYTE 0xFF
 
-        for (size_t i = 0; i < size; i++) {
-            crc = (crc >> 8) ^ crc32_table[(crc & 0xFF) ^ buffer[i]];
+uint32_t
+crc32_generate(const char* data, size_t size) {
+        uint32_t crc = INITIAL_FILLER;
+
+        for (size_t i = 0; i < size; ++i) {
+            crc = (crc >> sizeof(uint8_t)) ^ crc32_table[(crc & FIRST_BYTE) ^ (const uint32_t)data[i]];
         }
 
-        return crc ^ 0xFFFFFFFF;
+        return crc ^ INITIAL_FILLER;
 }

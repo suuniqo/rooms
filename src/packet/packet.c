@@ -4,6 +4,8 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/_types/_ssize_t.h>
+#include <sys/errno.h>
 #include <sys/socket.h>
 #include <time.h>
 #include <stdint.h>
@@ -17,7 +19,7 @@
 
 /*** data ***/
 
-const char* const PACKET_MAGIC = "rooms";
+static const char* const PACKET_MAGIC = "rooms";
 
 
 /*** serialize ***/
@@ -34,7 +36,10 @@ pack_chr(uint8_t* buf, uint8_t byte) {
 
 static void
 pack_str(uint8_t* buf, const char* data) {
+    size_t len = strlen(data);
+
     memcpy(buf, data, strlen(data));
+    buf[len] = '\0';
 }
 
 static void
@@ -61,10 +66,11 @@ unpack_chr(uint8_t* field, const uint8_t* buf) {
 }
 
 static void
-unpack_str(char* field, const uint8_t* buf, size_t size) {
-    memcpy(field, (const char*)buf, size);
+unpack_str(char* field, const uint8_t* buf) {
+    size_t len = strlen((const char*)buf);
 
-    field[size] = '\0';
+    memcpy(field, (const char*)buf, len);
+    field[len] = '\0';
 }
 
 static void
@@ -88,24 +94,29 @@ unpack_u64(uint64_t* field, const uint8_t* buf) {
 /*** encoding ***/
 
 static void
-packet_seal(packet_t* packet) {
+packet_seal(packet_t* packet, uint8_t flags) {
     time_t tm = time(NULL);
 
     if (tm < 0) {
         error_shutdown("packet err: time");
     }
 
-    memcpy(packet->magic, PACKET_MAGIC, SIZE_MAGIC);
-
-    packet->timestamp = (uint64_t)tm;
-    packet->payld_len = (uint8_t)strlen(packet->payld);
-    packet->crc = crc32_generate(packet->payld, packet->payld_len);
+    packet->flags = flags;
     packet->nonce += 1;
+    packet->timestamp = (uint64_t)tm;
+
+    if (flags & PACKET_FLAG_MSG) {
+        packet->payld_len = (uint8_t)strlen(packet->payld);
+        packet->crc = crc32_generate(packet->payld, packet->payld_len);
+    } else {
+        packet->payld_len = 0;
+        packet->crc = 0;
+    }
 }
 
 static void
 packet_encode(const packet_t* packet, uint8_t* buf) {
-    pack_str(buf, packet->magic);                       buf += SIZE_MAGIC;
+    pack_str(buf, PACKET_MAGIC);                        buf += SIZE_MAGIC;
     pack_str(buf, packet->usrname);                     buf += SIZE_USRNAME;
 
     pack_chr(buf, packet->payld_len);                   buf += SIZE_PAYLD_LEN;
@@ -121,51 +132,76 @@ packet_encode(const packet_t* packet, uint8_t* buf) {
 
 static void
 packet_decode(packet_t* packet, const uint8_t* buf) {
-    unpack_str(packet->magic, buf, SIZE_MAGIC);         buf += SIZE_MAGIC;
-    unpack_str(packet->usrname, buf, SIZE_USRNAME);     buf += SIZE_USRNAME;
+                                                        buf += SIZE_MAGIC;
+    unpack_str(packet->usrname, buf);                   buf += SIZE_USRNAME;
 
     unpack_chr(&packet->payld_len, buf);                buf += SIZE_PAYLD_LEN;
     unpack_chr(&packet->flags, buf);                    buf += SIZE_FLAGS;
     unpack_u32(&packet->crc, buf);                      buf += SIZE_CRC;
-    unpack_str(packet->options, buf, SIZE_OPTIONS);     buf += SIZE_OPTIONS;
+    unpack_str(packet->options, buf);                   buf += SIZE_OPTIONS;
 
     unpack_u64(&packet->nonce, buf);                    buf += SIZE_NONCE;
     unpack_u64(&packet->timestamp, buf);                buf += SIZE_TIMESTAMP;
 }
 
 
-/*** send/recv ***/
+/*** recv packet ***/
 
-#define PAYLD_LEN_OFFSET (SIZE_MAGIC + SIZE_USRNAME)
-
-static int
-packet_sendall(const net_t* net, const uint8_t* packet_buf) {
-    ssize_t n = 0;
-    ssize_t sent = 0;
-
-    ssize_t len = (ssize_t)((uint8_t)PACKET_SIZE_MIN + packet_buf[PAYLD_LEN_OFFSET]);
-
-    while (sent < len) {
-        n = send(net->sockfd, packet_buf + sent, (size_t)(len - sent), MSG_NOSIGNAL);
-
-        if (n < 0) {
-            break;
-        }
-
-        sent += n;
+static const uint8_t*
+magic_find(const uint8_t* noise, const uint8_t* magic, unsigned noise_size, unsigned magic_size) {
+    if (magic_size == 0 || noise_size < magic_size) {
+        return NULL;
     }
 
-    return sent == len ? 0 : -1;
+    for (unsigned i = 0; i <= noise_size - magic_size; ++i) {
+        if (memcmp(noise + i, magic, magic_size) == 0) {
+            error_log("found magic!");
+            return noise + i;
+        }
+    }
+
+    return NULL;
 }
 
 static int
 packet_recvhead(const net_t* net, uint8_t* packet_buf) {
-    return (int)recv(net->sockfd, packet_buf, PACKET_SIZE_MIN, MSG_WAITALL);
-}
+    int bytes = 0;
 
-static int
-packet_recvpayld(const net_t* net, char* payld, uint8_t payld_len) {
-    return (int)recv(net->sockfd, payld, payld_len, MSG_WAITALL);
+    const uint8_t* magic_pos = NULL;
+
+    bytes = recvall(net, packet_buf, PACKET_SIZE_MIN);
+
+    if (bytes <= 0) {
+        return bytes;
+    }
+
+    magic_pos = magic_find(packet_buf, (const uint8_t*)PACKET_MAGIC, PACKET_SIZE_MIN, SIZE_MAGIC);
+
+    while (magic_pos == NULL) {
+        memmove(packet_buf, packet_buf + PACKET_SIZE_MIN - (SIZE_MAGIC - 1), SIZE_MAGIC - 1);
+
+        bytes = recvall(net, packet_buf + SIZE_MAGIC - 1, PACKET_SIZE_MIN - (SIZE_MAGIC - 1));
+
+        if (bytes <= 0) {
+            return bytes;
+        }
+
+        magic_pos = magic_find(packet_buf, (const uint8_t*)PACKET_MAGIC, PACKET_SIZE_MIN, SIZE_MAGIC);
+    }
+
+    unsigned noise_size = (unsigned)(magic_pos - packet_buf);
+    unsigned valid_bytes = PACKET_SIZE_MIN - noise_size;
+
+    if (noise_size > 0) {
+        memmove(packet_buf, magic_pos, valid_bytes);
+        bytes = recvall(net, packet_buf + valid_bytes, noise_size);
+
+        if (bytes <= 0) {
+            return bytes;
+        }
+    }
+
+    return PACKET_SIZE_MIN;
 }
 
 
@@ -183,65 +219,53 @@ packet_build(const char* usrname) {
 }
 
 int
-packet_send(packet_t* packet, const net_t* net) {
+packet_send(packet_t* packet, const net_t* net, uint8_t flags) {
     uint8_t packet_buf[PACKET_SIZE_MAX] = {0};
 
-    packet_seal(packet);
+    packet_seal(packet, flags);
     packet_encode(packet, packet_buf);
 
-    error_log(
-"sent packet with: \n\
-magic: %s, usrname: %s, \n\
-payld_len: %u, flags: %u, crc: %u, options: %s, \n\
-nonce: %lu, timestamp: %lu, \n\
-payld: %s",
-            packet->magic, packet->usrname,
-            packet->payld_len, packet->flags, packet->crc, packet->options,
-            packet->nonce, packet->timestamp,
-            packet->payld);
-
-    return packet_sendall(net, packet_buf);
+    return sendall(net, packet_buf, PACKET_SIZE_MIN + packet_buf[OFFSET_PAYLD_LEN]);
 }
 
 int
 packet_recv(packet_t* packet, const net_t* net) {
     uint8_t packet_buf[PACKET_SIZE_MIN] = {0};
 
-    int bytes = packet_recvhead(net, packet_buf);
+    int bytes_head = 0;
+    int bytes_payld = 0;
 
-    if (bytes <= 0) {
-        return bytes;
+    memset(packet, 0, sizeof(packet_t));
+
+    bytes_head = packet_recvhead(net, packet_buf);
+
+    if (bytes_head <= 0) {
+        return bytes_head;
     }
 
     packet_decode(packet, packet_buf);
 
-    if (strcmp(PACKET_MAGIC, packet->magic) != 0) {
-        error_log("packet err: wrong magic");
-        return -1;
+    if (__builtin_popcount(packet->flags) != 1) {
+        error_log("packet err: wrong flags");
+        return -2;
     }
 
-    if (packet->payld_len > 0) {
-        bytes = packet_recvpayld(net, packet->payld, packet->payld_len);
+    if (packet->payld_len == 0) {
+        return bytes_head;
+    }
+
+    bytes_payld = recvall(net, (uint8_t*)packet->payld, packet->payld_len);
+
+    if (bytes_payld <= 0) {
+        return bytes_payld;
     }
 
     uint32_t crc = crc32_generate(packet->payld, packet->payld_len);
 
     if (packet->crc != crc) {
         error_log("packet err: wrong crc");
-        return -1;
+        return -2;
     }
 
-    error_log(
-"received packet of %d bytes: \n\
-magic: %s, usrname: %s, \n\
-payld_len: %u, flags: %u, crc: %u, options: %s, \n\
-nonce: %lu, timestamp: %lu, \n\
-payld: %s",
-            bytes,
-            packet->magic, packet->usrname,
-            packet->payld_len, packet->flags, packet->crc, packet->options,
-            packet->nonce, packet->timestamp,
-            packet->payld);
-
-    return bytes;
+    return bytes_head + bytes_payld;
 }

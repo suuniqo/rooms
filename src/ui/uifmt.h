@@ -5,13 +5,18 @@
 /*** defines ***/
 
  /* font */
-#define BOLD 1
 #define THIN 0
+#define BOLD 1
+#define FAINT 2
+#define ITALIC 3
+#define UNDERLINED 4
+#define INVERTED 7
 
-#define FONT_FORMAT_BOLD(COLOR) "\x1b[1;38;5;" #COLOR "m"
-#define FONT_FORMAT_THIN(COLOR) "\x1b[0;38;5;" #COLOR "m"
+#define FONT_FORMAT_UNWRAP(COLOR, BOLD) "\x1b[" #BOLD ";38;5;" #COLOR "m"
+#define FONT_FORMAT(COLOR, BOLD) FONT_FORMAT_UNWRAP(COLOR, BOLD)
 
-#define FONT_FORMAT(COLOR, BOLD) (BOLD) ?  FONT_FORMAT_BOLD(COLOR) :  FONT_FORMAT_THIN(COLOR)
+#define FONT_STYLE_UNWRAP(COLOR, STYLE, BOLD) "\x1b[" #BOLD ";" #STYLE ";38;5;" #COLOR "m"
+#define FONT_STYLE(COLOR, STYLE, BOLD) FONT_STYLE_UNWRAP(COLOR, STYLE, BOLD)
 
 #define FONT_BOLD "\x1b[1m"
 #define FONT_RESET "\x1b[0m"
