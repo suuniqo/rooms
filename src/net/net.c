@@ -26,7 +26,7 @@
 #define BASE_TEN 10
 
 
-/*** aux ***/
+/*** ioall ***/
 
 int
 sendall(const net_t* net, const uint8_t* buf, unsigned len) {
@@ -77,6 +77,7 @@ recvall(const net_t* net, uint8_t* buf, unsigned len) {
 }
 
 
+/*** connection ***/
 
 static int
 get_socket(const char* ip, const char* port) {

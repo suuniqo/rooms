@@ -3,6 +3,9 @@
 #define ERROR_H
 
 extern void
+error_init(const char* user, const char* mode);
+
+extern void
 error_log(const char* fmt, ...);
 
 extern void

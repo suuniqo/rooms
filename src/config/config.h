@@ -13,7 +13,7 @@ typedef struct config {
 /*** methods ***/
 
 extern void
-config_init(config_t** config, char** args);
+config_init(config_t** config, const char** args);
 
 extern void
 config_free(config_t* config);

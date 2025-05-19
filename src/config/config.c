@@ -21,9 +21,9 @@ typedef enum {
 
 /*** aux ***/
 
-static char*
-config_get_usrname(char** args) {
-    char* usrname = args[POS_USRNSME];
+static const char*
+config_get_usrname(const char** args) {
+    const char* usrname = args[POS_USRNSME];
 
     size_t len = strlen(usrname);
 
@@ -31,18 +31,12 @@ config_get_usrname(char** args) {
         error_shutdown("args err: usrname length must be between 1 and %d", SIZE_USRNAME);
     }
 
-    for (char* p = usrname; *p != '\0'; ++p) {
-        if (*p == ' ') {
-            *p = '_';
-        }
-    }
-
     return usrname;
 }
 
-static char*
-config_get_ip(char** args) {
-    char* ip = args[POS_IP];
+static const char*
+config_get_ip(const char** args) {
+    const char* ip = args[POS_IP];
     
     if (validate_ip(ip) != 0) {
         error_shutdown("args err: invalid ip address");
@@ -51,9 +45,9 @@ config_get_ip(char** args) {
     return ip;
 }
 
-static char*
-config_get_port(char** args) {
-    char* port = args[POS_PORT];
+static const char*
+config_get_port(const char** args) {
+    const char* port = args[POS_PORT];
 
     if (port == NULL) {
         return DEFAULT_PORT;
@@ -70,7 +64,7 @@ config_get_port(char** args) {
 /*** methods ***/
 
 void
-config_init(config_t** config, char** args) {
+config_init(config_t** config, const char** args) {
     *config = malloc(sizeof(config_t));
 
     if (*config == NULL) {

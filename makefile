@@ -6,6 +6,7 @@ NAME := rooms
 SRC_DIR := src
 BUILD_DIR := build
 TESTS_DIR := tests
+LOGS_DIR := logs
 BIN_DIR := bin
 ZIP_DIR := zip
 
@@ -48,9 +49,9 @@ zip:
 	zip -r $(ZIP_DIR)/$(NAME).zip $(SRC_DIR) makefile README.md
 
 dir:
-	@mkdir -p $(BUILD_DIR) $(BIN_DIR)
+	@mkdir -p $(BUILD_DIR) $(BIN_DIR) $(LOGS_DIR)
 	@rsync -a --include '*/' --exclude '*' $(SRC_DIR)/ $(BUILD_DIR)
 
 clean:
-	@rm -rf $(BUILD_DIR) $(BIN_DIR) $(ZIP_DIR)
+	@rm -rf $(BUILD_DIR) $(BIN_DIR) $(ZIP_DIR) $(LOGS_DIR)
 
