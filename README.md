@@ -8,13 +8,13 @@ rooms is fast, realiable and pretty.
 ## gallery
 
 <figure>
-    <img src="/assets/assets/preview-room-1.png"
+    <img src="/assets/preview-room-1.png"
         alt="chatroom appeareance">
     <figcaption>chatroom appeareance</figcaption>
 </figure>
 
 <figure>
-    <img src="/assets/assets/preview-help.png"
+    <img src="/assets/preview-help.png"
         alt="helpmenu appeareance">
     <figcaption>helpmenu appeareance</figcaption>
 </figure>
