@@ -3,8 +3,13 @@
 
 rooms is a self hosted terminal messaging app. \
 rooms doesn't use any external libraries.      \
-rooms uses end to end encryption (MLS).        \
-rooms is fast, realiable and pretty.           \
+rooms is fast, realiable and pretty.
+
+## gallery
+
+![chatroom appeareance](assets/preview-room-1.png)
+
+![helpmenu appeareance](assets/preview-help.png)
 
 
 ## packet
