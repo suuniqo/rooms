@@ -9,6 +9,8 @@ rooms is fast, realiable and pretty.
 
 ## packet
 
+initial packet (depreceated):
+
  <- 1B -> <-- 8B --> <------ 16B ------> <- [1,230] B ->
 +--------+----------+-------------------+---------------+
 | length | msg time | usrname + padding | payload (msg) |
@@ -17,20 +19,21 @@ rooms is fast, realiable and pretty.
 
 this is the rooms header format:
 
- <---- 6B ----> <------- 10B -------->
-+--------------+----------------------+
-|     magic    |        usrname       |
-+---+---+------+----------------------+
-| l | f | chks |       options        |
-+---+---+------+--+-------------------+
-|      nonce      |     timestamp     |
-+-----------------+-------------------+
-|                                     :
-:              payload                :
-:                                     |
-+-------------------------------------+
- <-------------- 16B ---------------->
-
+```
+              <---- 6B ----> <------- 10B -------->
+            +--------------+----------------------+
+0x0000:     |     magic    |        usrname       |
+            +---+---+------+----------------------+
+0x0010:     | l | f | chks |       options        |
+            +---+---+------+--+-------------------+
+0x0020:     |      nonce      |     timestamp     |
+            +-----------------+-------------------+
+0x0030:     |                                     :
+            :              payload                :
+0x0130:     :                                     |
+            +-------------------------------------+
+             <-------------- 16B ---------------->
+```
 
 this is the flag field format:
 
@@ -43,8 +46,10 @@ this is the flag field format:
 
 ## TODO
 
+- polish palette and message gui format
+- clean up gui especially for displaying the messages
 - scrolling in help section
-- add join and left messages, no repeated users, and whisper feature?
+- no repeated users, and whisper feature?
 - polish -> v0.1
 - encryption
 - [...]

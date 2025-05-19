@@ -48,11 +48,11 @@ static const uint32_t crc32_table[256] = {
 
 uint32_t
 crc32_generate(const char* data, size_t size) {
-        uint32_t crc = INITIAL_FILLER;
+    uint32_t crc = INITIAL_FILLER;
 
-        for (size_t i = 0; i < size; ++i) {
-            crc = (crc >> sizeof(uint8_t)) ^ crc32_table[(crc & FIRST_BYTE) ^ (const uint32_t)data[i]];
-        }
+    for (size_t i = 0; i < size; ++i) {
+        crc = (crc >> sizeof(uint8_t)) ^ crc32_table[(crc & FIRST_BYTE) ^ (uint8_t)data[i]];
+    }
 
-        return crc ^ INITIAL_FILLER;
+    return crc ^ INITIAL_FILLER;
 }

@@ -28,7 +28,7 @@ config_get_usrname(char** args) {
     size_t len = strlen(usrname);
 
     if (len == 0 || len > SIZE_USRNAME) {
-        error_shutdown("args err: usrname length must be between 1 and 16");
+        error_shutdown("args err: usrname length must be between 1 and %d", SIZE_USRNAME);
     }
 
     for (char* p = usrname; *p != '\0'; ++p) {

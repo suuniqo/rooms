@@ -79,7 +79,7 @@ prompt_trim_whitespace(const prompt_t* prompt, unsigned* start, unsigned* end) {
         return -1;
     }
 
-    for (*end = input->blen; *end - 1 > *start && input->buf[*end - 1] == ' '; *end -= 1) {}
+    for (*end = input->blen - 1; *end > *start && input->buf[*end] == ' '; *end -= 1) {}
 
     return 0;
 }
@@ -301,7 +301,7 @@ prompt_edit_send(prompt_t* prompt, char* msg_buf) {
     }
 
     memcpy(msg_buf, input->buf + start, end - start + 1);
-    msg_buf[end] = '\0';
+    msg_buf[end - start + 1] = '\0';
 
     input->blen = 0;
     input->ulen = 0;
@@ -320,7 +320,7 @@ prompt_edit_write(prompt_t* prompt, const prompt_layout_t* lyt, char* unicode, u
     prompt_input_t* input = &prompt->input;
     prompt_cursor_t* cursor = &prompt->cursor;
 
-    if (input->blen + bytes + 1 > sizeof(input->buf)) {
+    if (input->blen + bytes > sizeof(input->buf)) {
         return -1;
     }
 
