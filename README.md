@@ -7,11 +7,17 @@ rooms is fast, realiable and pretty.
 
 ## gallery
 
-![chatroom appeareance](assets/preview-room-1.png)
-*chatroom appeareance*
+<figure>
+    <img src="/assets/assets/preview-room-1.png"
+        alt="chatroom appeareance">
+    <figcaption>chatroom appeareance</figcaption>
+</figure>
 
-![helpmenu appeareance](assets/preview-help.png)
-*helpmenu appeareance*
+<figure>
+    <img src="/assets/assets/preview-help.png"
+        alt="helpmenu appeareance">
+    <figcaption>helpmenu appeareance</figcaption>
+</figure>
 
 ## packet
 
