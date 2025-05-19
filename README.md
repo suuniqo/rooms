@@ -5,16 +5,13 @@ rooms is a self hosted terminal messaging app. \
 rooms doesn't use any external libraries.      \
 rooms is fast, realiable and pretty.
 
-## gallery
 
-<p style="text-align:center">chatroom appeareance</p>
+## gallery
 
 ![chatroom appeareance](assets/preview-room-1.png)
 
-
-<p style="text-align:center">helpmenu appeareance</p>
-
 ![helpmenu appeareance](assets/preview-help.png)
+
 
 ## packet
 
