@@ -8,9 +8,10 @@ rooms is fast, realiable and pretty.
 ## gallery
 
 ![chatroom appeareance](assets/preview-room-1.png)
+*chatroom appeareance*
 
 ![helpmenu appeareance](assets/preview-help.png)
-
+*helpmenu appeareance*
 
 ## packet
 
