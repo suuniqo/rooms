@@ -7,11 +7,12 @@ rooms is fast, realiable and pretty.
 
 ## gallery
 
-<center> chatroom appeareance </center> 
+<p style="text-align:center">chatroom appeareance</p>
 
 ![chatroom appeareance](assets/preview-room-1.png)
 
-<center> helpmenu appeareance </center> 
+
+<p style="text-align:center">helpmenu appeareance</p>
 
 ![helpmenu appeareance](assets/preview-help.png)
 
