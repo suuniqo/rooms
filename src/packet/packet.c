@@ -95,12 +95,12 @@ magic_find(const uint8_t* noise, const uint8_t* magic, unsigned noise_size, unsi
 }
 
 static int
-packet_recvhead(const net_t* net, uint8_t* packet_buf) {
+packet_recvhead(int sockfd, uint8_t* packet_buf) {
     int bytes = 0;
 
     const uint8_t* magic_pos = NULL;
 
-    bytes = recvall(net, packet_buf, PACKET_SIZE_MIN);
+    bytes = recvall(sockfd, packet_buf, PACKET_SIZE_MIN);
 
     if (bytes <= 0) {
         return bytes;
@@ -111,7 +111,7 @@ packet_recvhead(const net_t* net, uint8_t* packet_buf) {
     while (magic_pos == NULL) {
         memmove(packet_buf, packet_buf + PACKET_SIZE_MIN - (SIZE_MAGIC - 1), SIZE_MAGIC - 1);
 
-        bytes = recvall(net, packet_buf + SIZE_MAGIC - 1, PACKET_SIZE_MIN - (SIZE_MAGIC - 1));
+        bytes = recvall(sockfd, packet_buf + SIZE_MAGIC - 1, PACKET_SIZE_MIN - (SIZE_MAGIC - 1));
 
         if (bytes <= 0) {
             return bytes;
@@ -125,7 +125,7 @@ packet_recvhead(const net_t* net, uint8_t* packet_buf) {
 
     if (noise_size > 0) {
         memmove(packet_buf, magic_pos, valid_bytes);
-        bytes = recvall(net, packet_buf + valid_bytes, noise_size);
+        bytes = recvall(sockfd, packet_buf + valid_bytes, noise_size);
 
         if (bytes <= 0) {
             return bytes;
@@ -150,17 +150,17 @@ packet_build(const char* usrname) {
 }
 
 int
-packet_send(packet_t* packet, const net_t* net, uint8_t flags) {
+packet_send(packet_t* packet, int sockfd, uint8_t flags) {
     uint8_t packet_buf[PACKET_SIZE_MAX] = {0};
 
     packet_seal(packet, flags);
     packet_encode(packet, packet_buf);
 
-    return sendall(net, packet_buf, PACKET_SIZE_MIN + packet_buf[OFFSET_PAYLD_LEN]);
+    return sendall(sockfd, packet_buf, PACKET_SIZE_MIN + packet_buf[OFFSET_PAYLD_LEN]);
 }
 
 int
-packet_recv(packet_t* packet, const net_t* net) {
+packet_recv(packet_t* packet, int sockfd) {
     uint8_t packet_buf[PACKET_SIZE_MIN] = {0};
 
     int bytes_head = 0;
@@ -168,7 +168,7 @@ packet_recv(packet_t* packet, const net_t* net) {
 
     memset(packet, 0, sizeof(packet_t));
 
-    bytes_head = packet_recvhead(net, packet_buf);
+    bytes_head = packet_recvhead(sockfd, packet_buf);
 
     if (bytes_head <= 0) {
         return bytes_head;
@@ -185,7 +185,7 @@ packet_recv(packet_t* packet, const net_t* net) {
         return bytes_head;
     }
 
-    bytes_payld = recvall(net, (uint8_t*)packet->payld, packet->payld_len);
+    bytes_payld = recvall(sockfd, (uint8_t*)packet->payld, packet->payld_len);
 
     if (bytes_payld <= 0) {
         return bytes_payld;

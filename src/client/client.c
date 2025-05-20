@@ -13,11 +13,12 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
-#include "../config/config.h"
+#include "ui/ui.h"
+#include "conn/cconn.h"
+#include "conf/cconf.h"
+
 #include "../error/error.h"
-#include "../net/net.h"
 #include "../packet/packet.h"
-#include "../ui/ui.h"
 
 
 /*** data ***/
@@ -25,17 +26,17 @@
 typedef struct threads {
     pthread_t listener;
 
-    pthread_mutex_t ui_lock;
-    pthread_mutex_t net_lock;
+    pthread_mutex_t lock_ui;
+    pthread_mutex_t lock_conn;
     pthread_cond_t cond;
 
     atomic_bool running;
 } threads_t;
 
 typedef struct client_context {
-    config_t* config;
+    cconf_t* config;
     threads_t* threads;
-    net_t* net;
+    cconn_t* conn;
     ui_t* ui;
 } client_context_t;
 
@@ -44,16 +45,16 @@ typedef struct client_context {
 
 static void
 client_locked_enqueue(threads_t* threads, ui_t* ui, packet_t* packet) {
-    pthread_mutex_lock(&threads->ui_lock);
+    pthread_mutex_lock(&threads->lock_ui);
     ui_handle_msg(ui, packet);
-    pthread_mutex_unlock(&threads->ui_lock);
+    pthread_mutex_unlock(&threads->lock_ui);
 }
 
 static void
 client_locked_refresh(threads_t* threads, ui_t* ui) {
-    pthread_mutex_lock(&threads->ui_lock);
+    pthread_mutex_lock(&threads->lock_ui);
     ui_refresh(ui);
-    pthread_mutex_unlock(&threads->ui_lock);
+    pthread_mutex_unlock(&threads->lock_ui);
 }
 
 
@@ -61,7 +62,7 @@ client_locked_refresh(threads_t* threads, ui_t* ui) {
 
 static void
 client_send(client_context_t* ctx, packet_t* packet, uint8_t flags) {
-    if (packet_send(packet, ctx->net, flags) < 0) {
+    if (packet_send(packet, ctx->conn->sockfd, flags) < 0) {
         error_shutdown("network err: send");
     }
 
@@ -74,11 +75,11 @@ client_recv(client_context_t* ctx) {
 
     threads_t* th = ctx->threads;
 
-    int bytes = packet_recv(&packet, ctx->net);
+    int bytes = packet_recv(&packet, ctx->conn->sockfd);
 
     if (bytes == 0) {                           /* server disconnected */
         ui_toggle_conn(ctx->ui);
-        net_reconnect(ctx->net, ctx->config, &th->running, &th->cond, &th->net_lock);
+        cconn_reconnect(ctx->conn, ctx->config, &th->running, &th->cond, &th->lock_conn);
         ui_toggle_conn(ctx->ui);
 
         return;
@@ -90,7 +91,7 @@ client_recv(client_context_t* ctx) {
             case ECONNRESET:
                 error_log("network err: recv");
                 ui_toggle_conn(ctx->ui);
-                net_reconnect(ctx->net, ctx->config, &th->running, &th->cond, &th->net_lock);
+                cconn_reconnect(ctx->conn, ctx->config, &th->running, &th->cond, &th->lock_conn);
                 ui_toggle_conn(ctx->ui);
                 break;
             default:
@@ -113,14 +114,14 @@ client_recv(client_context_t* ctx) {
 /*** stopping ***/
 
 static void
-client_stop_listener(threads_t* th, net_t* net) {
-    pthread_mutex_lock(&th->net_lock);
+client_stop_listener(threads_t* th, cconn_t* conn) {
+    pthread_mutex_lock(&th->lock_conn);
 
-    net_shutdown(net, SHUT_RD);                /* unlock the listener thread calling recv */
+    cconn_shutdown(conn, SHUT_RD);                /* unlock the listener thread calling recv */
     atomic_store(&th->running, false);
     pthread_cond_signal(&th->cond);
 
-    pthread_mutex_unlock(&th->net_lock);
+    pthread_mutex_unlock(&th->lock_conn);
 }
 
 
@@ -148,7 +149,7 @@ client_loop_talker(client_context_t* ctx) {
 
         if (rv == SIGNAL_QUIT) {
             client_send(ctx, &packet, PACKET_FLAG_EXIT);
-            client_stop_listener(ctx->threads, ctx->net);
+            client_stop_listener(ctx->threads, ctx->conn);
             break;
         }
 
@@ -172,8 +173,8 @@ client_threads_init(client_context_t* ctx) {
 
     ctx->threads->running = ATOMIC_VAR_INIT(true);
 
-    pthread_mutex_init(&ctx->threads->ui_lock, NULL);
-    pthread_mutex_init(&ctx->threads->net_lock, NULL);
+    pthread_mutex_init(&ctx->threads->lock_ui, NULL);
+    pthread_mutex_init(&ctx->threads->lock_conn, NULL);
     pthread_cond_init(&ctx->threads->cond, NULL);
 
     if (pthread_create(&ctx->threads->listener, NULL, &client_loop_listener, ctx) != 0) {
@@ -187,8 +188,8 @@ client_threads_free(client_context_t* ctx) {
         error_shutdown("thread err: join");
     }
 
-    pthread_mutex_destroy(&ctx->threads->ui_lock);
-    pthread_mutex_destroy(&ctx->threads->net_lock);
+    pthread_mutex_destroy(&ctx->threads->lock_ui);
+    pthread_mutex_destroy(&ctx->threads->lock_conn);
     pthread_cond_destroy(&ctx->threads->cond);
 
     free(ctx->threads);
@@ -199,9 +200,9 @@ client_threads_free(client_context_t* ctx) {
 /*** context ***/
 
 static void
-client_context_init(client_context_t* ctx, char** args) {
-    config_init(&ctx->config, args);
-    net_init(&ctx->net, ctx->config);
+client_context_init(client_context_t* ctx, const char** args) {
+    cconf_init(&ctx->config, args);
+    cconn_init(&ctx->conn, ctx->config);
     ui_init(&ctx->ui);
     client_threads_init(ctx);
 }
@@ -210,15 +211,15 @@ static void
 client_context_free(client_context_t* ctx) {
     ui_free(ctx->ui);
     client_threads_free(ctx);
-    net_free(ctx->net);
-    config_free(ctx->config);
+    cconn_free(ctx->conn);
+    cconf_free(ctx->config);
 }
 
     
 /*** client ***/
 
 int
-client(char** args) {
+client(const char** args) {
     client_context_t ctx;
 
     client_context_init(&ctx, args);

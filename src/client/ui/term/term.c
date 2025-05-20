@@ -11,8 +11,8 @@
 #include <unistd.h>
 #include <sys/ioctl.h>
 
-#include "../../error/error.h"
-#include "../../syscall/syscall.h"
+#include "../../../error/error.h"
+#include "../../../syscall/syscall.h"
 
 /*** data ***/
 

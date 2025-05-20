@@ -4,7 +4,7 @@
 
 #include <stdbool.h>
 
-#include "../packet/packet.h"
+#include "../../packet/packet.h"
 
 typedef struct ui ui_t;
 

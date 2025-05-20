@@ -1,13 +1,13 @@
 
-#include "config.h"
+#include "cconf.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "../error/error.h"
-#include "../net/net.h"
-#include "../packet/packet.h"
+#include "../../error/error.h"
+#include "../../net/net.h"
+#include "../../packet/packet.h"
 
 /*** data ***/
 
@@ -19,10 +19,11 @@ typedef enum {
 
 #define DEFAULT_PORT "9034"
 
+
 /*** aux ***/
 
 static const char*
-config_get_usrname(const char** args) {
+cconf_extract_usrname(const char** args) {
     const char* usrname = args[POS_USRNSME];
 
     size_t len = strlen(usrname);
@@ -35,7 +36,7 @@ config_get_usrname(const char** args) {
 }
 
 static const char*
-config_get_ip(const char** args) {
+cconf_extract_ip(const char** args) {
     const char* ip = args[POS_IP];
     
     if (validate_ip(ip) != 0) {
@@ -46,7 +47,7 @@ config_get_ip(const char** args) {
 }
 
 static const char*
-config_get_port(const char** args) {
+cconf_extract_port(const char** args) {
     const char* port = args[POS_PORT];
 
     if (port == NULL) {
@@ -64,21 +65,22 @@ config_get_port(const char** args) {
 /*** methods ***/
 
 void
-config_init(config_t** config, const char** args) {
-    *config = malloc(sizeof(config_t));
+cconf_init(cconf_t** config, const char** args) {
+    *config = malloc(sizeof(cconf_t));
 
     if (*config == NULL) {
         error_shutdown("config err: malloc");
     }
 
-    **config = (config_t) {
-        .port = config_get_port(args),
-        .ip = config_get_ip(args),
-        .usrname = config_get_usrname(args)
+    **config = (cconf_t) {
+        .port    = cconf_extract_port(args),
+        .ip      = cconf_extract_ip(args),
+        .usrname = cconf_extract_usrname(args)
    };
 }
 
+
 void
-config_free(config_t* config) {
+cconf_free(cconf_t* config) {
     free(config);
 }

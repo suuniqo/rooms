@@ -10,9 +10,9 @@
 
 #include "msg/msg.h"
 
-#include "../../error/error.h"
-#include "../../packet/packet.h"
-#include "../../input/input.h"
+#include "../../../error/error.h"
+#include "../../../packet/packet.h"
+#include "../../../input/input.h"
 
 #define CHAT_HISTORY_SIZE 256
 

@@ -67,9 +67,9 @@ packet_build(const char* usrname);
 /*** send/recv ***/
 
 extern int
-packet_recv(packet_t* packet, const net_t* net);
+packet_recv(packet_t* packet, int sockfd);
 
 extern int
-packet_send(packet_t* packet, const net_t* net, uint8_t flags);
+packet_send(packet_t* packet, int sockfd, uint8_t flags);
 
 #endif /* !defined(PACKET_H) */

@@ -17,9 +17,9 @@
 #include "prompt/prompt.h"
 #include "term/term.h"
 
-#include "../input/input.h"
-#include "../syscall/syscall.h"
-#include "../error/error.h"
+#include "../../input/input.h"
+#include "../../syscall/syscall.h"
+#include "../../error/error.h"
 
 
 /*** state ***/

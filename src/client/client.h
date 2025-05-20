@@ -3,6 +3,6 @@
 #define CLIENT_H
 
 extern int
-client(char** args);
+client(const char** args);
 
 #endif /* !defined(CLIENT_H) */

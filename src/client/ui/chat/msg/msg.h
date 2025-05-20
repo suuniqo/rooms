@@ -1,12 +1,9 @@
 #if !defined(MSG_H)
 #define MSG_H 
 
-
-/*** includes ***/
-
 #include <stdbool.h>
 
-#include "../../../packet/packet.h"
+#include "../../../../packet/packet.h"
 
 
 /*** data ***/

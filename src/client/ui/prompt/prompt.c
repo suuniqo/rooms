@@ -7,9 +7,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../../packet/packet.h"
-#include "../../input/input.h"
-#include "../../error/error.h"
+#include "../../../packet/packet.h"
+#include "../../../input/input.h"
+#include "../../../error/error.h"
 
 
 typedef struct {

@@ -19,7 +19,7 @@ typedef enum role {
 #define ARGC_SERVER(argc) ((argc) == 2)
 
 rooms_role_t
-get_role(int argc, char** argv) {
+get_role(int argc, const char** argv) {
     if (ARGC_CLIENT(argc) && strcmp(argv[1], MODE_CLIENT) == 0) {
         error_init(argv[2], MODE_CLIENT);
         return ROLE_JOIN;
@@ -37,6 +37,6 @@ get_role(int argc, char** argv) {
 
 
 int
-main(int argc, char** argv) {
+main(int argc, const char** argv) {
     return get_role(argc, argv) == ROLE_HOST ? server() : client(argv);
 }

@@ -8,8 +8,8 @@
 
 #include "../../uifmt.h"
 
-#include "../../../input/input.h"
-#include "../../../error/error.h"
+#include "../../../../input/input.h"
+#include "../../../../error/error.h"
 
 #define TIME_FORMAT "%H:%M"
 #define TIME_FORMAT_SIZE 5

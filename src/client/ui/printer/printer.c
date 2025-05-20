@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <unistd.h>
 
-#include "../../error/error.h"
+#include "../../../error/error.h"
 
 #define PRINTER_INIT_SIZE 512
 
