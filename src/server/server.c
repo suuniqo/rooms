@@ -37,7 +37,7 @@ get_listener_socket(void) {
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_flags = AI_PASSIVE;
 
-    if ((rv = getaddrinfo(NULL, PORT, &hints, &ai)) == -1) {
+    if ((rv = getaddrinfo(NULL, PORT, &hints, &ai)) != 0) {
         fprintf(stderr, "pollserver: %s\n", gai_strerror(rv));
         exit(1);
     }
@@ -54,7 +54,8 @@ get_listener_socket(void) {
             exit(1);
         }
 
-        if (bind(listener, ai->ai_addr, p->ai_addrlen) < 0) {
+        if (bind(listener, p->ai_addr, p->ai_addrlen) < 0) {
+            perror("bind");
             close(listener);
             continue;
         }

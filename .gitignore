@@ -6,6 +6,7 @@
 compile_commands.json
 rooms.log
 
+/keys/
 /build/
 /bin/
 /zip/
