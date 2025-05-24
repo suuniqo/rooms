@@ -135,7 +135,7 @@ server(void) {
     }
 
     // Add the listener to set
-    add_to_pfds(pfds, listene/r);
+    add_to_pfds(pfds, listener);
 
     while (1) {
         int poll_count = poll(pfds->arr, pfds->fd_count, -1);
