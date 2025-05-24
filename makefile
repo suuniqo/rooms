@@ -34,7 +34,7 @@ endif
 all: dir $(NAME)
 
 $(NAME): $(OBJS)
-	@$(CC) $(LDFLAGS) $(OBJS) -o $(BIN_DIR)/$@
+	@$(CC) $(OBJS) -o $(BIN_DIR)/$@ $(LDFLAGS)  
 
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
 	@$(CC) $(CFLAGS) -c $< -o $@
