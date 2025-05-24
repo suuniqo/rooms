@@ -68,7 +68,7 @@ gui_start(void) {
 
 void
 gui_stop(void) {
-    printf("%s%s%s%s\n", RESET_SCROLL, FONT_RESET, KILL_BRACKETED_PASTE, KILL_ALT_BUF);
+    printf("%s%s%s%s%s\n", RESET_SCROLL, FONT_RESET, CURSOR_SHOW, KILL_BRACKETED_PASTE, KILL_ALT_BUF);
 }
 
 
