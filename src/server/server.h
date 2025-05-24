@@ -3,6 +3,6 @@
 #define SERVER_H
 
 extern int
-server(void);
+server(const char** args);
 
 #endif /* !defined(SERVER_H) */

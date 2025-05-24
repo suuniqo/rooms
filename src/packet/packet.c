@@ -1,6 +1,7 @@
 
 #include "packet.h"
 
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
@@ -24,27 +25,6 @@ static const char* const PACKET_MAGIC = "rooms";
 
 
 /*** encoding ***/
-
-static void
-packet_seal(packet_t* packet, uint8_t flags) {
-    time_t tm = time(NULL);
-
-    if (tm < 0) {
-        error_shutdown("packet err: time");
-    }
-
-    packet->flags = flags;
-    packet->nonce += 1;
-    packet->timestamp = (uint64_t)tm;
-
-    if (flags & PACKET_FLAG_MSG) {
-        packet->payld_len = (uint8_t)strlen(packet->payld);
-        packet->crc = crc32_generate(packet->payld, packet->payld_len);
-    } else {
-        packet->payld_len = 0;
-        packet->crc = 0;
-    }
-}
 
 static void
 packet_encode(const packet_t* packet, uint8_t* buf) {
@@ -77,7 +57,81 @@ packet_decode(packet_t* packet, const uint8_t* buf) {
 }
 
 
-/*** recv packet ***/
+/*** validation ***/
+
+#define PACKET_HAS_PAYLD(packet) ((packet)->flags & (PACKET_FLAG_MSG | PACKET_FLAG_WHSP))
+
+static bool
+packet_valstr(const char* str) {
+    size_t len = strlen(str);
+
+    for (size_t i = len; i < sizeof(str); ++i) {
+        if (str[i] != '\0') {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+static bool
+packet_valhead(packet_t* packet) {
+    if (strlen(packet->usrname) == 0) {
+        error_log("packet err: empty usrname");
+        return false;
+    }
+
+    if (__builtin_popcount(packet->flags) != 1) {
+        error_log("packet err: corrupt flags 0x%02x", packet->flags);
+        return false;
+    }
+
+    if (PACKET_HAS_PAYLD(packet) && (packet->payld_len == 0 || packet->crc == 0)) {
+        error_log("packet err: incoherent contents (type = MSG/WHSP and PAYLD_LEN = 0)");
+        return false;
+    }
+
+    if (!PACKET_HAS_PAYLD(packet) && (packet->payld_len != 0 || packet->crc != 0)) {
+        error_log("packet err: incoherent contents (type != MSG/WHSP and PAYLD_LEN != 0)");
+        return false;
+    }
+
+    if (packet->flags & PACKET_FLAG_WHSP && strlen(packet->options) == 0) {
+        error_log("packet err: incoherent contents (type = WHSP and OPTIONS_LEN = 0)");
+        return false;
+    }
+
+    if (!(packet->flags & PACKET_FLAG_WHSP) && strlen(packet->options) != 0) {
+        error_log("packet err: incoherent contents (type != WHSP and OPTIONS_LEN != 0)");
+        return false;
+    }
+
+    if (!packet_valstr(packet->usrname)) {
+        error_log("packet err: corrupt usrname (not sanitized)");
+        return false;
+    }
+
+    if (!packet_valstr(packet->options)) {
+        error_log("packet err: corrupt options (not sanitized)");
+        return false;
+    }
+
+    return true;
+}
+
+static bool
+packet_valpayld(packet_t* packet) {
+    uint32_t crc = crc32_generate(packet->payld, packet->payld_len);
+
+    if (packet->crc != crc) {
+        error_log("packet err: corrupt crc, (expected %08x, got %08x)");
+        return false;
+    }
+
+    return true;
+}
+
+/*** recv ***/
 
 static const uint8_t*
 magic_find(const uint8_t* noise, const uint8_t* magic, unsigned noise_size, unsigned magic_size) {
@@ -95,7 +149,7 @@ magic_find(const uint8_t* noise, const uint8_t* magic, unsigned noise_size, unsi
 }
 
 static int
-packet_recvhead(int sockfd, uint8_t* packet_buf) {
+packet_recvhead(int sockfd, uint8_t* packet_buf, int max_resyncs) {
     int bytes = 0;
 
     const uint8_t* magic_pos = NULL;
@@ -108,7 +162,11 @@ packet_recvhead(int sockfd, uint8_t* packet_buf) {
 
     magic_pos = magic_find(packet_buf, (const uint8_t*)PACKET_MAGIC, PACKET_SIZE_MIN, SIZE_MAGIC);
 
-    while (magic_pos == NULL) {
+    for (int resync = 0; magic_pos == NULL; ++resync) {
+        if (max_resyncs >= 0 && resync > max_resyncs) {
+            return RECV_DESYNC;
+        }
+
         memmove(packet_buf, packet_buf + PACKET_SIZE_MIN - (SIZE_MAGIC - 1), SIZE_MAGIC - 1);
 
         bytes = recvall(sockfd, packet_buf + SIZE_MAGIC - 1, PACKET_SIZE_MIN - (SIZE_MAGIC - 1));
@@ -149,18 +207,38 @@ packet_build(const char* usrname) {
     return packet;
 }
 
+void
+packet_seal(packet_t* packet, uint8_t flags) {
+    time_t tm = time(NULL);
+
+    if (tm < 0) {
+        error_shutdown("packet err: time");
+    }
+
+    packet->flags = flags;
+    packet->nonce += 1;
+    packet->timestamp = (uint64_t)tm;
+
+    if (flags & PACKET_FLAG_MSG) {
+        packet->payld_len = (uint8_t)strlen(packet->payld);
+        packet->crc = crc32_generate(packet->payld, packet->payld_len);
+    } else {
+        packet->payld_len = 0;
+        packet->crc = 0;
+    }
+}
+
 int
-packet_send(packet_t* packet, int sockfd, uint8_t flags) {
+packet_send(const packet_t* packet, int sockfd) {
     uint8_t packet_buf[PACKET_SIZE_MAX] = {0};
 
-    packet_seal(packet, flags);
     packet_encode(packet, packet_buf);
 
     return sendall(sockfd, packet_buf, PACKET_SIZE_MIN + packet_buf[OFFSET_PAYLD_LEN]);
 }
 
 int
-packet_recv(packet_t* packet, int sockfd) {
+packet_recv(packet_t* packet, int sockfd, int max_resyncs) {
     uint8_t packet_buf[PACKET_SIZE_MIN] = {0};
 
     int bytes_head = 0;
@@ -168,7 +246,7 @@ packet_recv(packet_t* packet, int sockfd) {
 
     memset(packet, 0, sizeof(packet_t));
 
-    bytes_head = packet_recvhead(sockfd, packet_buf);
+    bytes_head = packet_recvhead(sockfd, packet_buf, max_resyncs);
 
     if (bytes_head <= 0) {
         return bytes_head;
@@ -176,9 +254,8 @@ packet_recv(packet_t* packet, int sockfd) {
 
     packet_decode(packet, packet_buf);
 
-    if (__builtin_popcount(packet->flags) != 1) {
-        error_log("packet err: wrong flags");
-        return -2;
+    if (!packet_valhead(packet)) {
+        return RECV_INVAL;
     }
 
     if (packet->payld_len == 0) {
@@ -191,12 +268,34 @@ packet_recv(packet_t* packet, int sockfd) {
         return bytes_payld;
     }
 
-    uint32_t crc = crc32_generate(packet->payld, packet->payld_len);
-
-    if (packet->crc != crc) {
-        error_log("packet err: wrong crc");
-        return -2;
+    if (!packet_valpayld(packet)) {
+        return RECV_INVAL;
     }
 
     return bytes_head + bytes_payld;
 }
+
+packet_t
+packet_build_ping(const char* usrname) {
+    packet_t packet = {0};
+
+    packet.flags = PACKET_FLAG_PING;
+    memcpy(packet.usrname, usrname, strlen(usrname));
+
+    return packet;
+}
+
+void
+packet_build_pong(packet_t* ping) {
+    ping->flags = PACKET_FLAG_PONG;
+}
+
+void
+packet_build_ack(packet_t* packet) {
+    packet->flags = PACKET_FLAG_ACK;
+    packet->payld_len = 0;
+    packet->crc = 0;
+
+    memset(packet->payld, 0, sizeof(packet->payld));
+}
+

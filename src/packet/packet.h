@@ -7,6 +7,15 @@
 
 #include "../net/net.h"
 
+#define RESYNC_NOLIMIT -1
+
+typedef enum {
+    RECV_DISCONN =  0,
+    RECV_ERROR   = -1,
+    RECV_INVAL   = -2,
+    RECV_DESYNC  = -3,
+} packet_recv_err_t;
+
 typedef enum {
     SIZE_MAGIC     = 6,
     SIZE_USRNAME   = 10,
@@ -21,19 +30,19 @@ typedef enum {
 
 typedef enum {
     OFFSET_MAGIC     = 0,
-    OFFSET_USRNAME   = 6,
-    OFFSET_PAYLD_LEN = 16,
-    OFFSET_FLAGS     = 17,
-    OFFSET_CRC       = 18,
-    OFFSET_OPTIONS   = 22,
-    OFFSET_NONCE     = 32,
-    OFFSET_TIMESTAMP = 40,
-    OFFSET_PAYLD     = 48,
+    OFFSET_USRNAME   = OFFSET_MAGIC     + SIZE_MAGIC,
+    OFFSET_PAYLD_LEN = OFFSET_USRNAME   + SIZE_USRNAME,
+    OFFSET_FLAGS     = OFFSET_PAYLD_LEN + SIZE_PAYLD_LEN,
+    OFFSET_CRC       = OFFSET_FLAGS     + SIZE_FLAGS,
+    OFFSET_OPTIONS   = OFFSET_CRC       + SIZE_CRC,
+    OFFSET_NONCE     = OFFSET_OPTIONS   + SIZE_OPTIONS,
+    OFFSET_TIMESTAMP = OFFSET_NONCE     + SIZE_NONCE,
+    OFFSET_PAYLD     = OFFSET_TIMESTAMP + SIZE_TIMESTAMP,
 } packet_field_offset_t;
 
 typedef enum {
-    PACKET_SIZE_MIN = 48,
-    PACKET_SIZE_MAX = 303,
+    PACKET_SIZE_MIN = OFFSET_PAYLD,
+    PACKET_SIZE_MAX = (int)PACKET_SIZE_MIN + (int)SIZE_PAYLD,
 } packet_size_t;
 
 typedef enum {
@@ -42,8 +51,9 @@ typedef enum {
     PACKET_FLAG_WHSP = 1 << 2,
     PACKET_FLAG_JOIN = 1 << 3,
     PACKET_FLAG_EXIT = 1 << 4,
-    PACKET_FLAG_PING = 1 << 5,
-    PACKET_FLAG_PONG = 1 << 6,
+    PACKET_FLAG_DISC = 1 << 5,
+    PACKET_FLAG_PING = 1 << 6,
+    PACKET_FLAG_PONG = 1 << 7,
 } packet_flags_t;
 
 typedef struct packet {
@@ -63,13 +73,28 @@ typedef struct packet {
 extern packet_t
 packet_build(const char* usrname);
 
+extern void
+packet_seal(packet_t* packet, uint8_t flags);
 
 /*** send/recv ***/
 
 extern int
-packet_recv(packet_t* packet, int sockfd);
+packet_recv(packet_t* packet, int sockfd, int max_resyncs);
 
 extern int
-packet_send(packet_t* packet, int sockfd, uint8_t flags);
+packet_send(const packet_t* packet, int sockfd);
+
+/*** ping ***/
+
+extern packet_t
+packet_build_ping(const char* usrname);
+
+extern void
+packet_build_pong(packet_t* ping);
+
+/*** ack ***/
+
+extern void
+packet_build_ack(packet_t* packet);
 
 #endif /* !defined(PACKET_H) */
