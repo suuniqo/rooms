@@ -15,7 +15,7 @@
 
 
 typedef enum {
-    POS_USRNSME = 0,
+    POS_USRNSME = 2,
     POS_IP,
     POS_PORT,
 } cargs_t;
