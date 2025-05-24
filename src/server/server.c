@@ -9,6 +9,8 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
+#include "../conf.h"
+
 #include "../error/error.h"
 #include "../packet/packet.h"
 #include "../net/net.h"
@@ -19,7 +21,6 @@ typedef struct pfds {
     size_t fd_size;
 } pfds_t;
 
-#define PORT "9034"
 #define BACKLOG 10
 #define INIT_PFDS_SIZE 5
 
@@ -37,7 +38,7 @@ get_listener_socket(void) {
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_flags = AI_PASSIVE;
 
-    if ((rv = getaddrinfo(NULL, PORT, &hints, &ai)) != 0) {
+    if ((rv = getaddrinfo(NULL, DEFAULT_PORT, &hints, &ai)) != 0) {
         fprintf(stderr, "pollserver: %s\n", gai_strerror(rv));
         exit(1);
     }
@@ -134,7 +135,7 @@ server(void) {
     }
 
     // Add the listener to set
-    add_to_pfds(pfds, listener);
+    add_to_pfds(pfds, listene/r);
 
     while (1) {
         int poll_count = poll(pfds->arr, pfds->fd_count, -1);
