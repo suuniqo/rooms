@@ -8,6 +8,9 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 #include <string.h>
+#include <sys/_types/_ssize_t.h>
+#include <sys/errno.h>
+#include <sys/poll.h>
 #include <sys/socket.h>
 #include <time.h>
 #include <unistd.h>
@@ -34,7 +37,7 @@ sendall(int sockfd, const uint8_t* buf, unsigned len) {
         n = send(sockfd, buf + sent, (size_t)(len - sent), MSG_NOSIGNAL);
 
         if (n == -1 && errno == EINTR) {
-            error_log("conn err: send");
+            error_log("net err: send");
             continue;
         }
 
@@ -51,14 +54,13 @@ sendall(int sockfd, const uint8_t* buf, unsigned len) {
 
 int
 recvall(int sockfd, uint8_t* buf, unsigned len) {
-    ssize_t n = 0;
     ssize_t recvd = 0;
 
      do {
-        n = recv(sockfd, buf + recvd, (size_t)(len - recvd), MSG_WAITALL);
+        ssize_t n = recv(sockfd, buf + recvd, (size_t)(len - recvd), MSG_WAITALL);
 
         if (n == -1 && errno == EINTR) {
-            error_log("conn err: recv");
+            error_log("net err: recv");
             continue;
         }
 
@@ -77,11 +79,9 @@ recvall(int sockfd, uint8_t* buf, unsigned len) {
 /*** connection ***/
 
 int
-get_socket(const char* ip, const char* port) {
+get_socket_connect(const char* ip, const char* port) {
     struct addrinfo hints, *ai, *p;
-
-    int rv = 0;
-    int sockfd = -1;
+    int rv, sockfd = -1;
 
     memset(&hints, 0, sizeof(struct addrinfo));
     hints.ai_family = AF_UNSPEC;
@@ -89,12 +89,12 @@ get_socket(const char* ip, const char* port) {
     hints.ai_flags = AI_ADDRCONFIG;
 
     if ((rv = getaddrinfo(ip, port, &hints, &ai)) != 0) {
-        error_shutdown("conn err: %s\n", gai_strerror(rv));
+        error_shutdown("net err: getaddrinfo: %s\n", gai_strerror(rv));
     }
 
     for (p = ai; p != NULL; p = p->ai_next) {
         if ((sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) < 0) {
-            error_log("conn err: couldn't get socket");
+            error_log("net err: socket");
             continue;
         }
 
@@ -102,9 +102,9 @@ get_socket(const char* ip, const char* port) {
             break;
         }
 
-        error_log("conn err: couldn't connect");
-
+        error_log("net err: connect");
         close(sockfd);
+
         sockfd = -1;
     }
 
@@ -112,6 +112,60 @@ get_socket(const char* ip, const char* port) {
 
     return sockfd;
 }
+
+int
+get_socket_listen(const char* port) {
+    struct addrinfo hints, *ai, *p;
+    int rv, sockfd;
+
+    int yes = 1;
+
+    memset(&hints, 0, sizeof(struct addrinfo));
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_flags = AI_PASSIVE;
+
+    if ((rv = getaddrinfo(NULL, port, &hints, &ai)) != 0) {
+        error_shutdown("net err: getaddrinfo: %s\n", gai_strerror(rv));
+    }
+
+    for (p = ai; p != NULL; p = p->ai_next) {
+        if ((sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) < 0) {
+            error_log("net err: socket");
+            continue;
+        }
+
+        /* loose "addres already in use" error message */
+        if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1) {
+            error_shutdown("net err: setsockopt");
+        }
+
+        if (bind(sockfd, p->ai_addr, p->ai_addrlen) == 0) {
+            break;
+        }
+
+        error_log("net err: bind");
+        close(sockfd);
+
+        sockfd = -1;
+    }
+
+    freeaddrinfo(ai);
+
+    if (p == NULL) {
+        return -1;
+    }
+
+    if (listen(sockfd, SOMAXCONN) == -1) {
+        error_log("net err: listen");
+        close(sockfd);
+
+        return -1;
+    }
+
+    return sockfd;
+}
+
 
 
 /*** methods ***/
