@@ -5,19 +5,20 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "../../conf.h"
+
 #include "../../error/error.h"
 #include "../../net/net.h"
 #include "../../packet/packet.h"
 
 /*** data ***/
 
+
 typedef enum {
-    POS_USRNSME = 2,
+    POS_USRNSME = 0,
     POS_IP,
     POS_PORT,
-} args_t;
-
-#define DEFAULT_PORT "9034"
+} cargs_t;
 
 
 /*** aux ***/
@@ -29,7 +30,7 @@ cconf_extract_usrname(const char** args) {
     size_t len = strlen(usrname);
 
     if (len == 0 || len > SIZE_USRNAME) {
-        error_shutdown("args err: usrname length must be between 1 and %d", SIZE_USRNAME);
+        error_shutdown("cconf err: usrname length must be between 1 and %d", SIZE_USRNAME);
     }
 
     return usrname;
@@ -40,7 +41,7 @@ cconf_extract_ip(const char** args) {
     const char* ip = args[POS_IP];
     
     if (validate_ip(ip) != 0) {
-        error_shutdown("args err: invalid ip address");
+        error_shutdown("cconf err: invalid ip address");
     }
 
     return ip;
@@ -55,7 +56,7 @@ cconf_extract_port(const char** args) {
     }
     
     if (validate_port(port) != 0) {
-        error_shutdown("args err: invalid port number");
+        error_shutdown("cconf err: invalid port number");
     }
 
     return port;
@@ -65,14 +66,14 @@ cconf_extract_port(const char** args) {
 /*** methods ***/
 
 void
-cconf_init(cconf_t** config, const char** args) {
-    *config = malloc(sizeof(cconf_t));
+cconf_init(cconf_t** conf, const char** args) {
+    *conf = malloc(sizeof(cconf_t));
 
-    if (*config == NULL) {
-        error_shutdown("config err: malloc");
+    if (*conf == NULL) {
+        error_shutdown("cconf err: malloc");
     }
 
-    **config = (cconf_t) {
+    **conf = (cconf_t) {
         .port    = cconf_extract_port(args),
         .ip      = cconf_extract_ip(args),
         .usrname = cconf_extract_usrname(args)
@@ -81,6 +82,6 @@ cconf_init(cconf_t** config, const char** args) {
 
 
 void
-cconf_free(cconf_t* config) {
-    free(config);
+cconf_free(cconf_t* conf) {
+    free(conf);
 }

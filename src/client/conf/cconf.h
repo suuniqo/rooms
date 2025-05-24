@@ -1,6 +1,6 @@
 
-#if !defined(CCONF_T)
-#define CCONF_T
+#if !defined(CCONF_H)
+#define CCONF_H
 
 /*** data ***/
 
@@ -18,4 +18,4 @@ cconf_init(cconf_t** conf, const char** args);
 extern void
 cconf_free(cconf_t* conf);
 
-#endif /* !defined(CCONF_T) */
+#endif /* !defined(CCONF_H) */

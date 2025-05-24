@@ -31,27 +31,27 @@ typedef struct threads {
     pthread_cond_t cond;
 
     atomic_bool running;
-} threads_t;
+} cthreads_t;
 
 typedef struct client_context {
     cconf_t* config;
-    threads_t* threads;
+    cthreads_t* threads;
     cconn_t* conn;
     ui_t* ui;
-} client_context_t;
+} ccontext_t;
 
 
 /*** synchronized ***/
 
 static void
-client_locked_enqueue(threads_t* threads, ui_t* ui, packet_t* packet) {
+client_locked_enqueue(cthreads_t* threads, ui_t* ui, packet_t* packet) {
     pthread_mutex_lock(&threads->lock_ui);
     ui_handle_msg(ui, packet);
     pthread_mutex_unlock(&threads->lock_ui);
 }
 
 static void
-client_locked_refresh(threads_t* threads, ui_t* ui) {
+client_locked_refresh(cthreads_t* threads, ui_t* ui) {
     pthread_mutex_lock(&threads->lock_ui);
     ui_refresh(ui);
     pthread_mutex_unlock(&threads->lock_ui);
@@ -61,23 +61,25 @@ client_locked_refresh(threads_t* threads, ui_t* ui) {
 /*** network ***/
 
 static void
-client_send(client_context_t* ctx, packet_t* packet, uint8_t flags) {
-    if (packet_send(packet, ctx->conn->sockfd, flags) < 0) {
-        error_shutdown("network err: send");
+client_send(ccontext_t* ctx, packet_t* packet, uint8_t flags) {
+    packet_seal(packet, flags);
+
+    if (packet_send(packet, ctx->conn->sockfd) < 0) {
+        error_shutdown("client err: packet_send");
     }
 
     client_locked_enqueue(ctx->threads, ctx->ui, packet);
 }
 
 static void
-client_recv(client_context_t* ctx) {
+client_recv(ccontext_t* ctx) {
     packet_t packet = {0};
 
-    threads_t* th = ctx->threads;
+    cthreads_t* th = ctx->threads;
 
-    int bytes = packet_recv(&packet, ctx->conn->sockfd);
+    int bytes = packet_recv(&packet, ctx->conn->sockfd, RESYNC_NOLIMIT);
 
-    if (bytes == 0) {                           /* server disconnected */
+    if (bytes == RECV_DISCONN) {                           /* server disconnected */
         ui_toggle_conn(ctx->ui);
         cconn_reconnect(ctx->conn, ctx->config, &th->running, &th->cond, &th->lock_conn);
         ui_toggle_conn(ctx->ui);
@@ -85,25 +87,25 @@ client_recv(client_context_t* ctx) {
         return;
     }
 
-    if (bytes == -1) {
+    if (bytes == RECV_ERROR) {
         switch (errno) {
             case ETIMEDOUT:
             case ECONNRESET:
-                error_log("network err: recv");
+                error_log("client err: packet_recv: socket disconnected");
                 ui_toggle_conn(ctx->ui);
                 cconn_reconnect(ctx->conn, ctx->config, &th->running, &th->cond, &th->lock_conn);
                 ui_toggle_conn(ctx->ui);
                 break;
             default:
-                error_shutdown("network err: recv");
+                error_shutdown("client err: packet_recv: fatal");
                 break;
         }
 
         return;
     }
 
-    if (bytes == -2) {
-        error_log("network err: discarded packet");
+    if (bytes == RECV_INVAL) {
+        error_log("client err: packet_recv: discarded packet");
         return;
     }
 
@@ -114,7 +116,7 @@ client_recv(client_context_t* ctx) {
 /*** stopping ***/
 
 static void
-client_stop_listener(threads_t* th, cconn_t* conn) {
+client_stop(cthreads_t* th, cconn_t* conn) {
     pthread_mutex_lock(&th->lock_conn);
 
     cconn_shutdown(conn, SHUT_RD);                /* unlock the listener thread calling recv */
@@ -129,7 +131,7 @@ client_stop_listener(threads_t* th, cconn_t* conn) {
 
 static void*
 client_loop_listener(void* ctx_nullable) {
-    client_context_t* ctx = (client_context_t*) ctx_nullable;
+    ccontext_t* ctx = (ccontext_t*) ctx_nullable;
 
     while (atomic_load(&ctx->threads->running)) {
         client_recv(ctx);
@@ -139,7 +141,7 @@ client_loop_listener(void* ctx_nullable) {
 }
 
 static void
-client_loop_talker(client_context_t* ctx) {
+client_loop_talker(ccontext_t* ctx) {
     packet_t packet = packet_build(ctx->config->usrname);
 
     client_send(ctx, &packet, PACKET_FLAG_JOIN);
@@ -148,8 +150,10 @@ client_loop_talker(client_context_t* ctx) {
         ui_signal_t rv = ui_handle_keypress(ctx->ui, packet.payld);
 
         if (rv == SIGNAL_QUIT) {
-            client_send(ctx, &packet, PACKET_FLAG_EXIT);
-            client_stop_listener(ctx->threads, ctx->conn);
+            if (atomic_load(&ctx->conn->online)) {
+                client_send(ctx, &packet, PACKET_FLAG_EXIT);
+            }
+            client_stop(ctx->threads, ctx->conn);
             break;
         }
 
@@ -164,8 +168,8 @@ client_loop_talker(client_context_t* ctx) {
 /*** threads ***/
 
 static void
-client_threads_init(client_context_t* ctx) {
-    ctx->threads = malloc(sizeof(threads_t));
+cthreads_init(ccontext_t* ctx) {
+    ctx->threads = malloc(sizeof(cthreads_t));
 
     if (ctx->threads == NULL) {
         error_shutdown("threads err: malloc");
@@ -183,7 +187,7 @@ client_threads_init(client_context_t* ctx) {
 }
 
 static void
-client_threads_free(client_context_t* ctx) {
+cthreads_free(ccontext_t* ctx) {
     if (pthread_join(ctx->threads->listener, NULL) != 0) {
         error_shutdown("thread err: join");
     }
@@ -200,17 +204,17 @@ client_threads_free(client_context_t* ctx) {
 /*** context ***/
 
 static void
-client_context_init(client_context_t* ctx, const char** args) {
+ccontext_init(ccontext_t* ctx, const char** args) {
     cconf_init(&ctx->config, args);
     cconn_init(&ctx->conn, ctx->config);
     ui_init(&ctx->ui);
-    client_threads_init(ctx);
+    cthreads_init(ctx);
 }
 
 static void
-client_context_free(client_context_t* ctx) {
+ccontext_free(ccontext_t* ctx) {
     ui_free(ctx->ui);
-    client_threads_free(ctx);
+    cthreads_free(ctx);
     cconn_free(ctx->conn);
     cconf_free(ctx->config);
 }
@@ -220,9 +224,9 @@ client_context_free(client_context_t* ctx) {
 
 int
 client(const char** args) {
-    client_context_t ctx;
+    ccontext_t ctx;
 
-    client_context_init(&ctx, args);
+    ccontext_init(&ctx, args);
 
     ui_start(ctx.ui);
 
@@ -230,7 +234,7 @@ client(const char** args) {
 
     ui_stop(ctx.ui);
 
-    client_context_free(&ctx);
+    ccontext_free(&ctx);
 
     return 0;
 }

@@ -1,6 +1,8 @@
 
 #include "cconn.h"
 
+#include <stdatomic.h>
+#include <stdbool.h>
 #include <pthread.h>
 #include <stdlib.h>
 #include <sys/socket.h>
@@ -12,16 +14,21 @@
 #include "../../net/net.h"
 
 void
-cconn_init(cconn_t** conn, const cconf_t* config) {
-    *conn = malloc(sizeof(cconn_t));
+cconn_init(cconn_t** conn_ptr, const cconf_t* config) {
+    *conn_ptr = malloc(sizeof(cconn_t));
 
-    if (*conn == NULL) {
+    if (*conn_ptr == NULL) {
         error_shutdown("conn err: malloc");
     }
 
-    (*conn)->sockfd = get_socket(config->ip, config->port);
+    cconn_t* conn = *conn_ptr;
 
-    if ((*conn)->sockfd == -1) {
+    *conn = (cconn_t) {
+        .sockfd = get_socket_connect(config->ip, config->port),
+        .online = ATOMIC_VAR_INIT(true),
+    };
+
+    if (conn->sockfd == -1) {
         error_shutdown("conn err: failed to connect");
     }
 
@@ -44,7 +51,7 @@ cconn_init(cconn_t** conn, const cconf_t* config) {
 #define JITTER_RATIO 8
 
 void
-cconn_reconnect(cconn_t* conn, const cconf_t* config, atomic_bool* retry, pthread_cond_t* cond, pthread_mutex_t* mutex) {
+cconn_reconnect(cconn_t* conn, const cconf_t* config, const atomic_bool* retry, pthread_cond_t* cond, pthread_mutex_t* mutex) {
     if (!atomic_load(retry)) {
         return;
     }
@@ -54,11 +61,13 @@ cconn_reconnect(cconn_t* conn, const cconf_t* config, atomic_bool* retry, pthrea
 
     pthread_mutex_lock(mutex);
 
+    atomic_store(&conn->online, false);
     close(conn->sockfd);
+
     conn->sockfd = -1;
 
     for (unsigned i = 0; i < INM_RETRIES; ++i) {
-        sockfd = get_socket(config->ip, config->port);
+        sockfd = get_socket_connect(config->ip, config->port);
 
         if (sockfd != -1) {
             conn->sockfd = sockfd;
@@ -71,10 +80,11 @@ cconn_reconnect(cconn_t* conn, const cconf_t* config, atomic_bool* retry, pthrea
     backoff = MIN_BACKOFF;
 
     while (atomic_load(retry)) {
-        sockfd = get_socket(config->ip, config->port);
+        sockfd = get_socket_connect(config->ip, config->port);
 
         if (sockfd != -1) {
             conn->sockfd = sockfd;
+            atomic_store(&conn->online, true);
             pthread_mutex_unlock(mutex);
 
             return;
@@ -93,8 +103,7 @@ cconn_reconnect(cconn_t* conn, const cconf_t* config, atomic_bool* retry, pthrea
         timeout.tv_nsec = (now.tv_nsec + backoff + jitter) % ONE_SC;
 
         pthread_cond_timedwait(cond, mutex, &timeout);
-
-    };
+    }
 
     pthread_mutex_unlock(mutex);
 }

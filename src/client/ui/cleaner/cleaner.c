@@ -18,11 +18,11 @@ struct cleaner {
 };
 
 void
-cleaner_init(cleaner_t **cleaner) {
+cleaner_init(cleaner_t** cleaner) {
     *cleaner = malloc(sizeof(cleaner_t));
 
     if (*cleaner == NULL) {
-        error_shutdown("printer err: malloc: no mem for printer");
+        error_shutdown("cleaner err: malloc");
     }
 
     (*cleaner)->size = 0;
@@ -47,7 +47,7 @@ cleaner_push(cleaner_t* cleaner, cleaner_fn_t cleaner_fn, void* arg) {
 }
 
 void
-cleaner_run(cleaner_t *cleaner) {
+cleaner_run(cleaner_t* cleaner) {
     unsigned size = cleaner->size;
     cleaner->size = 0;
 

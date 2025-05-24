@@ -13,6 +13,7 @@
 
 typedef struct cconn {
     int sockfd;
+    atomic_bool online;
 } cconn_t;
 
 
@@ -22,7 +23,7 @@ extern void
 cconn_init(cconn_t** conn, const cconf_t* config);
 
 extern void
-cconn_reconnect(cconn_t* conn, const cconf_t* config, atomic_bool* retry, pthread_cond_t* cond, pthread_mutex_t* mutex);
+cconn_reconnect(cconn_t* conn, const cconf_t* config, const atomic_bool* retry, pthread_cond_t* cond, pthread_mutex_t* mutex);
 
 extern int
 cconn_get_socket(cconn_t* conn);

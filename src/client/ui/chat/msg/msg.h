@@ -8,7 +8,7 @@
 
 /*** data ***/
 
-#define MSG_HEADER_SIZE (13 + 16 + 13 + 4 + 13 + 5 + 13)
+#define MSG_HEADER_SIZE 128
 #define MSG_WIDTH_RATIO(W) ((W) * 4) / 5
 
 typedef struct {

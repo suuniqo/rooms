@@ -14,6 +14,15 @@
 #define TIME_FORMAT "%H:%M"
 #define TIME_FORMAT_SIZE 5
 
+typedef enum {
+    MSG_STATUS_JOIN = 0,
+    MSG_STATUS_EXIT,
+    MSG_STATUS_DISC,
+    MSG_STATUS_LEN,
+} msg_status_t;
+
+static const char* const msg_status_str[MSG_STATUS_LEN] = {"joined", "left", "disconnected"};
+
 /*** color ***/
 
 static const uint8_t PALETTE[] = {
@@ -73,23 +82,14 @@ chat_msg_build_whisper(chat_msg_t* msg, const packet_t* packet, const char* time
 }
 
 static void
-chat_msg_build_join(chat_msg_t* msg, const packet_t* packet, const char* time) {
+chat_msg_build_status(chat_msg_t* msg, const packet_t* packet, const char* time, msg_status_t st) {
     msg->msg_blen = 0;
     msg->msg_ulen = 0;
 
-    msg->header_blen = snprintf(msg->buf, sizeof(msg->buf), "\x1b[1;38;5;%dm%s %sjoined at %s%s",
+    msg->header_blen = snprintf(msg->buf, sizeof(msg->buf), "\x1b[1;38;5;%dm%s %s%s at %s%s",
             chat_usrname_color(packet->usrname), packet->usrname,
-            FONT_FORMAT(COLOR_DEFAULT, THIN), FONT_FORMAT(COLOR_LIGHT, BOLD), time);
-}
-
-static void
-chat_msg_build_exit(chat_msg_t* msg, const packet_t* packet, const char* time) {
-    msg->msg_blen = 0;
-    msg->msg_ulen = 0;
-
-    msg->header_blen = snprintf(msg->buf, sizeof(msg->buf), "\x1b[1;38;5;%dm%s %sleft at %s%s",
-            chat_usrname_color(packet->usrname), packet->usrname,
-            FONT_FORMAT(COLOR_DEFAULT, THIN), FONT_FORMAT(COLOR_LIGHT, BOLD), time);
+            FONT_FORMAT(COLOR_DEFAULT, THIN), msg_status_str[st],
+            FONT_FORMAT(COLOR_LIGHT, BOLD), time);
 }
 
 /*** build ***/
@@ -97,8 +97,14 @@ chat_msg_build_exit(chat_msg_t* msg, const packet_t* packet, const char* time) {
 void
 chat_msg_build(chat_msg_t* msg, const packet_t* packet) {
     char time[TIME_FORMAT_SIZE + 1];
-    struct tm* tm_info = localtime((const time_t*)&packet->timestamp);
-    strftime(time, sizeof(time), TIME_FORMAT, tm_info);
+
+    struct tm tm_info;
+
+    if (localtime_r((const time_t*)&packet->timestamp, &tm_info) == NULL) {
+        error_shutdown("chat msg err: localtime_r");
+    }
+
+    strftime(time, sizeof(time), TIME_FORMAT, &tm_info);
 
     switch (packet->flags) {
         case PACKET_FLAG_MSG:
@@ -108,10 +114,13 @@ chat_msg_build(chat_msg_t* msg, const packet_t* packet) {
             chat_msg_build_whisper(msg, packet, time);
             break;
         case PACKET_FLAG_JOIN:
-            chat_msg_build_join(msg, packet, time);
+            chat_msg_build_status(msg, packet, time, MSG_STATUS_JOIN);
             break;
         case PACKET_FLAG_EXIT:
-            chat_msg_build_exit(msg, packet, time);
+            chat_msg_build_status(msg, packet, time, MSG_STATUS_EXIT);
+            break;
+        case PACKET_FLAG_DISC:
+            chat_msg_build_status(msg, packet, time, MSG_STATUS_DISC);
             break;
         default:
             error_shutdown("msg err: invalid packet flag (%u)", packet->flags);
