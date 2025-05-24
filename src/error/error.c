@@ -38,8 +38,9 @@ error_ftime(char* tm_buf) {
     time_t epoch = time(NULL);
     struct tm tm_info;
 
-    if (localtime_r(&epoch, &tm_info) < 0) {
+    if (localtime_r(&epoch, &tm_info) == NULL) {
         perror("log err: couldn't get time");
+        return 0;
     }
 
     return strftime(tm_buf, TIME_BUF_LEN, TIME_FORMAT, &tm_info);
@@ -73,7 +74,9 @@ error_write(const char* errmsg, error_type_t type) {
     char tm_buf[TIME_BUF_LEN];
     char err_buf[ERR_BUF_LEN];
 
-    (void)error_ftime(tm_buf);
+    if (error_ftime(tm_buf) == 0) {
+        *tm_buf = '\0';
+    }
     if (strerror_r(errno, err_buf, sizeof(err_buf)) != 0) {
         *err_buf = '\0';
     }
