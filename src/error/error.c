@@ -4,7 +4,6 @@
 #include <errno.h>
 #include <pthread.h>
 #include <string.h>
-#include <sys/_pthread/_pthread_mutex_t.h>
 #include <time.h>
 #include <stdarg.h>
 #include <stdlib.h>
