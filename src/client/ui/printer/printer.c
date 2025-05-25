@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <unistd.h>
 
-#include "../../../error/error.h"
+#include "../../../log/log.h"
 
 #define PRINTER_INIT_SIZE 512
 
@@ -24,7 +24,7 @@ printer_init(printer_t** printer) {
     *printer = malloc(sizeof(printer_t));
 
     if (*printer == NULL) {
-        error_shutdown("printer err: malloc: no mem for printer");
+        log_shutdown("printer err: malloc: no mem for printer");
     }
 
     **printer = (printer_t) {
@@ -34,7 +34,7 @@ printer_init(printer_t** printer) {
     };
 
     if ((*printer)->buf == NULL) {
-        error_shutdown("printer err: malloc: no mem for printer buf");
+        log_shutdown("printer err: malloc: no mem for printer buf");
     }
 }
 
@@ -58,7 +58,7 @@ printer_append(printer_t* printer, const char *fmt, ...) {
     if (len + printer->len >= printer->size) {
         if (ULONG_MAX - len < printer->size) {
             va_end(args);
-            error_shutdown("printer err: printer is full");
+            log_shutdown("printer err: printer is full");
         }
 
         size_t new_size = printer->len + len + 1;
@@ -67,7 +67,7 @@ printer_append(printer_t* printer, const char *fmt, ...) {
 
         if (new_buf == NULL) {
             va_end(args);
-            error_shutdown("printer err: malloc: no mem to resize printer");
+            log_shutdown("printer err: malloc: no mem to resize printer");
         }
 
         printer->buf = new_buf;
@@ -81,7 +81,7 @@ printer_append(printer_t* printer, const char *fmt, ...) {
 void
 printer_dump(printer_t* printer) {
     if (write(STDOUT_FILENO, printer->buf, printer->len) == -1) {
-        error_shutdown("printer err: couldn't write on screen");
+        log_shutdown("printer err: couldn't write on screen");
     }
 
     printer->len = 0;

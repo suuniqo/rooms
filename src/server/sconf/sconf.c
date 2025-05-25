@@ -7,7 +7,7 @@
 
 #include "../../conf.h"
 
-#include "../../error/error.h"
+#include "../../log/log.h"
 #include "../../net/net.h"
 
 /*** data ***/
@@ -28,7 +28,7 @@ sconf_extract_port(const char** args) {
     }
     
     if (validate_port(port) != 0) {
-        error_shutdown("sconf err: invalid port number");
+        log_shutdown("sconf err: invalid port number");
     }
 
     return port;
@@ -42,7 +42,7 @@ sconf_init(sconf_t** conf, const char** args) {
     *conf = malloc(sizeof(sconf_t));
 
     if (*conf == NULL) {
-        error_shutdown("sconf err: malloc");
+        log_shutdown("sconf err: malloc");
     }
 
     **conf = (sconf_t) {

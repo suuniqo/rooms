@@ -3,7 +3,7 @@
 
 #include <stdlib.h>
 
-#include "../../../error/error.h"
+#include "../../../log/log.h"
 
 #define MAX_CLEANER_ENTRIES 7
 
@@ -22,7 +22,7 @@ cleaner_init(cleaner_t** cleaner) {
     *cleaner = malloc(sizeof(cleaner_t));
 
     if (*cleaner == NULL) {
-        error_shutdown("cleaner err: malloc");
+        log_shutdown("cleaner err: malloc");
     }
 
     (*cleaner)->size = 0;
@@ -36,7 +36,7 @@ cleaner_free(cleaner_t* cleaner) {
 void
 cleaner_push(cleaner_t* cleaner, cleaner_fn_t cleaner_fn, void* arg) {
     if (cleaner->size >= MAX_CLEANER_ENTRIES) {
-        error_log("cleaner err: cannot push, cleaner is full");
+        log_error("cleaner err: cannot push, cleaner is full");
         return;
     }
 

@@ -8,7 +8,7 @@
 #include <unistd.h>
 #include <time.h>
 
-#include "../error/error.h"
+#include "../log/log.h"
 
 #define MS_IN_SC 1000
 
@@ -25,7 +25,7 @@ safe_nanosleep(long ns) {
         if (errno == EINTR) {
             req = rem;
         } else {
-            error_shutdown("syscall err: nanosleep");
+            log_shutdown("syscall err: nanosleep");
         }
     }
 
@@ -37,14 +37,14 @@ safe_rand(void) {
     int fd = open("/dev/urandom", O_RDONLY);
 
     if (fd < 0) {
-        error_shutdown("syscall err: open");
+        log_shutdown("syscall err: open");
     }
 
     int64_t rand;
     ssize_t bytes = read(fd, &rand, sizeof(uint64_t));
 
     if (bytes != sizeof(int64_t)) {
-        error_shutdown("syscall err: read");
+        log_shutdown("syscall err: read");
     }
 
     close(fd);
@@ -57,7 +57,7 @@ safe_time_ms(void) {
     struct timespec ts;
 
     if (clock_gettime(CLOCK_MONOTONIC, &ts) < 0) {
-        error_shutdown("syscall err: clock_gettime");
+        log_shutdown("syscall err: clock_gettime");
     }
 
     return (ts.tv_sec * MS_IN_SC) + (ts.tv_nsec / ONE_MS);

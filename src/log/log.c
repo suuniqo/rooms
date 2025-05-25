@@ -1,10 +1,9 @@
 
-#include "error.h"
+#include "log.h"
 
 #include <errno.h>
 #include <pthread.h>
 #include <string.h>
-#include <sys/_pthread/_pthread_mutex_t.h>
 #include <time.h>
 #include <stdarg.h>
 #include <stdlib.h>
@@ -26,7 +25,13 @@ typedef enum {
     ERROR_TYPE_LEN,
 } error_type_t;
 
-static char log_file[LOG_NAME_LEN] = {0}; /* NOLINT */
+typedef struct log {
+    pthread_mutex_t lock;
+    char file[LOG_NAME_LEN];
+} log_t;
+
+static log_t* log = NULL; /* NOLINT */
+
 static pthread_mutex_t log_lock = PTHREAD_MUTEX_INITIALIZER; /* NOLINT */
 static const char* const error_type_str[ERROR_TYPE_LEN] = {"ERROR", "FATAL"};
 
@@ -50,23 +55,41 @@ error_ftime(char* tm_buf) {
 /*** methods ***/
 
 void
-error_free(void) {
-    pthread_mutex_destroy(&log_lock);
-}
-
-void
-error_init(const char* user, const char* mode) {
-    if (user != NULL) {
-        (void)snprintf((char*)log_file, LOG_NAME_LEN, "logs/rooms-%s@%s.log", mode, user);
-    } else {
-        (void)snprintf((char*)log_file, LOG_NAME_LEN, "logs/rooms-%s.log", mode);
+log_free(void) {
+    if (log == NULL) {
+        return;
     }
 
-    atexit(error_free);
+    pthread_mutex_destroy(&log_lock);
+    free(log);
 }
 
 void
-error_write(const char* errmsg, error_type_t type) {
+log_init(const char* user, const char* mode) {
+    if (log != NULL) {
+        return;
+    }
+
+    log = malloc(sizeof(log_t));
+
+    if (log == NULL) {
+        perror("log err: malloc");
+        exit(1);
+    }
+
+    if (user != NULL) {
+        (void)snprintf(log->file, LOG_NAME_LEN, "logs/rooms-%s@%s.log", mode, user);
+    } else {
+        (void)snprintf(log->file, LOG_NAME_LEN, "logs/rooms-%s.log", mode);
+    }
+
+    pthread_mutex_init(&log->lock, NULL);
+
+    atexit(log_free);
+}
+
+void
+log_write(const char* errmsg, error_type_t type) {
     pthread_mutex_lock(&log_lock);
 
     int saved_errno = errno;
@@ -81,28 +104,28 @@ error_write(const char* errmsg, error_type_t type) {
         *err_buf = '\0';
     }
 
-    FILE* log = fopen(log_file, "a");
+    FILE* logfd = fopen(log->file, "a");
 
     if (log == NULL) {
         perror("log err: failed to open rooms_log.txt");
         exit(1);
     }
 
-    fprintf(log, "[%s][%s] %s", error_type_str[type], tm_buf, errmsg);
+    fprintf(logfd, "[%s][%s] %s", error_type_str[type], tm_buf, errmsg);
 
     if (errno != 0) {
-        fprintf(log, ": %s (%d)", err_buf, saved_errno);
+        fprintf(logfd, ": %s (%d)", err_buf, saved_errno);
         errno = 0;
     }
 
-    fprintf(log, "\n");
-    fclose(log);
+    fprintf(logfd, "\n");
+    fclose(logfd);
 
     pthread_mutex_unlock(&log_lock);
 }
 
 void
-error_log(const char* fmt, ...) {
+log_error(const char* fmt, ...) {
     va_list args;
     va_start(args, fmt);
 
@@ -111,11 +134,11 @@ error_log(const char* fmt, ...) {
     vsnprintf(err_buf, sizeof(err_buf), fmt, args);
     va_end(args);
 
-    error_write(err_buf, ERROR_TYPE_NORMAL);
+    log_write(err_buf, ERROR_TYPE_NORMAL);
 }
 
 void
-error_shutdown(const char* fmt, ...) {
+log_shutdown(const char* fmt, ...) {
     va_list args;
     va_start(args, fmt);
 
@@ -124,7 +147,7 @@ error_shutdown(const char* fmt, ...) {
     vsnprintf(err_buf, sizeof(err_buf), fmt, args);
     va_end(args);
 
-    error_write(err_buf, ERROR_TYPE_FATAL);
+    log_write(err_buf, ERROR_TYPE_FATAL);
 
     exit(1);
 }

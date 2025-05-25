@@ -15,7 +15,7 @@
 #include "sconn/sconn.h"
 #include "sconf/sconf.h"
 
-#include "../error/error.h"
+#include "../log/log.h"
 #include "../packet/packet.h"
 
 /*** conf ***/
@@ -78,18 +78,18 @@ server_recv(packet_t* packet, int recv_fd) {
                 return SHOULD_STRIKE;
             default:
                 printf("server: socket %d fatal error\n", recv_fd);
-                error_log("server err: packet_recv: fatal");
+                log_error("server err: packet_recv: fatal");
                 return SHOULD_KICK;
         }
     }
 
     if (bytes == RECV_INVAL) {
-        error_log("server err: packet_recv: discarded packet");
+        log_error("server err: packet_recv: discarded packet");
         return SHOULD_STRIKE;
     }
 
     if (bytes == RECV_DESYNC) {
-        error_log("server err: packet_recv: discarded packet");
+        log_error("server err: packet_recv: discarded packet");
         return SHOULD_STRIKE;
     }
 
@@ -126,6 +126,8 @@ server_fanout(const sconn_t* conn, const packet_t* packet, int send_fd) {
             }
         }
     }
+
+    return SHOULD_CONT;
 }
 
 static scomm_err_t
@@ -181,7 +183,7 @@ server_handle_client(const sconn_t* conn, unsigned fd_idx) {
     struct pollfd pfd = sconn_get_pfd(conn, fd_idx);
 
     if (pfd.revents & POLLNVAL) {
-        error_shutdown("server err: pollnval on fd %d", pfd.fd);
+        log_shutdown("server err: pollnval on fd %d", pfd.fd);
     }
 
     if (pfd.revents & POLLERR) {
@@ -190,9 +192,9 @@ server_handle_client(const sconn_t* conn, unsigned fd_idx) {
         getsockopt(pfd.fd, SOL_SOCKET, SO_ERROR, &error, &errlen);
 
         if (error != 0) {
-            error_log("server err: pollerr on fd %d: %s", pfd.fd, strerror(error));
+            log_error("server err: pollerr on fd %d: %s", pfd.fd, strerror(error));
         } else {
-            error_log("server err: pollerr on fd %d", pfd.fd);
+            log_error("server err: pollerr on fd %d", pfd.fd);
         }
 
         printf("server: socket %d disconnected\n", pfd.fd);
@@ -241,7 +243,7 @@ server_accept_client(const sconn_t* conn, unsigned fd_idx) {
     printf("server: listener was polled\n");
 
     if (pfd.revents & POLLNVAL) {
-        error_shutdown("server err: pollnval on listener");
+        log_shutdown("server err: pollnval on listener");
     }
 
     if (pfd.revents & POLLERR) {
@@ -250,14 +252,14 @@ server_accept_client(const sconn_t* conn, unsigned fd_idx) {
         getsockopt(pfd.fd, SOL_SOCKET, SO_ERROR, &error, &errlen);
 
         if (error != 0) {
-            error_shutdown("server err: pollerr on listener: %s", strerror(error));
+            log_shutdown("server err: pollerr on listener: %s", strerror(error));
         } else {
-            error_shutdown("server err: pollerr on listener");
+            log_shutdown("server err: pollerr on listener");
         }
     }
 
     if (pfd.revents & POLLHUP) {
-        error_shutdown("server err: pollhup on listener");
+        log_shutdown("server err: pollhup on listener");
     }
 
     printf("server: accepting new client...\n");
@@ -286,13 +288,13 @@ server_loop(scontext_t* ctx) {
 
             if (pfd.fd == ctx->conn->listener) {
                 if (server_accept_client(ctx->conn, fd_idx) < 0) {
-                    error_log("server err: couldn't accept client");
+                    log_error("server err: couldn't accept client");
                 }
                 continue;
             }
             
             if (server_handle_client(ctx->conn, fd_idx) < 0) {
-                error_log("server err: couldn't handle client");
+                log_error("server err: couldn't handle client");
                 fd_idx -= 1;
             }
         }

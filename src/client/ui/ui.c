@@ -19,7 +19,7 @@
 
 #include "../../input/input.h"
 #include "../../syscall/syscall.h"
-#include "../../error/error.h"
+#include "../../log/log.h"
 
 
 /*** state ***/
@@ -168,7 +168,7 @@ status_init(ui_status_t* st) {
     sa.sa_flags = SA_RESTART;
 
     if (sigaction(SIGWINCH, &sa, NULL) == -1) {
-        error_shutdown("couldnt setup signals");
+        log_shutdown("couldnt setup signals");
     }
 }
 
@@ -387,7 +387,7 @@ ui_handle_keypress_room(ui_t* ui, int key, char* msg_buf) {
 
     char unicode[MAX_UTF8_BYTES] = {chr};
     if (read(STDIN_FILENO, unicode + 1, bytes - 1) == -1) {
-        error_shutdown("ui err: couldn't read");
+        log_shutdown("ui err: couldn't read");
     }
 
     if (read(STDIN_FILENO, &chr, 1) != 0) {         /* discard multibyte utf8 sequence */
@@ -423,7 +423,7 @@ ui_init(ui_t** ui) {
     *ui = malloc(sizeof(ui_t));
 
     if (*ui == NULL) {
-        error_shutdown("ui err: malloc:");
+        log_shutdown("ui err: malloc:");
     }
 }
 

@@ -10,7 +10,7 @@
 
 #include "msg/msg.h"
 
-#include "../../../error/error.h"
+#include "../../../log/log.h"
 #include "../../../packet/packet.h"
 #include "../../../input/input.h"
 
@@ -189,7 +189,7 @@ chat_init(chat_t** chat) {
     *chat = malloc(sizeof(chat_t));
 
     if (*chat == NULL) {
-        error_shutdown("chat err: no mem");
+        log_shutdown("chat err: no mem");
     }
 
     **chat = (chat_t) {

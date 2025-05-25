@@ -7,7 +7,7 @@
 
 #include "../../conf.h"
 
-#include "../../error/error.h"
+#include "../../log/log.h"
 #include "../../net/net.h"
 #include "../../packet/packet.h"
 
@@ -30,7 +30,7 @@ cconf_extract_usrname(const char** args) {
     size_t len = strlen(usrname);
 
     if (len == 0 || len > SIZE_USRNAME) {
-        error_shutdown("cconf err: usrname length must be between 1 and %d", SIZE_USRNAME);
+        log_shutdown("cconf err: usrname length must be between 1 and %d", SIZE_USRNAME);
     }
 
     return usrname;
@@ -41,7 +41,7 @@ cconf_extract_ip(const char** args) {
     const char* ip = args[POS_IP];
     
     if (validate_ip(ip) != 0) {
-        error_shutdown("cconf err: invalid ip address");
+        log_shutdown("cconf err: invalid ip address");
     }
 
     return ip;
@@ -56,7 +56,7 @@ cconf_extract_port(const char** args) {
     }
     
     if (validate_port(port) != 0) {
-        error_shutdown("cconf err: invalid port number");
+        log_shutdown("cconf err: invalid port number");
     }
 
     return port;
@@ -70,7 +70,7 @@ cconf_init(cconf_t** conf, const char** args) {
     *conf = malloc(sizeof(cconf_t));
 
     if (*conf == NULL) {
-        error_shutdown("cconf err: malloc");
+        log_shutdown("cconf err: malloc");
     }
 
     **conf = (cconf_t) {

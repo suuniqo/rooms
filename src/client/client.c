@@ -17,7 +17,7 @@
 #include "conn/cconn.h"
 #include "conf/cconf.h"
 
-#include "../error/error.h"
+#include "../log/log.h"
 #include "../packet/packet.h"
 
 
@@ -65,7 +65,7 @@ client_send(ccontext_t* ctx, packet_t* packet, uint8_t flags) {
     packet_seal(packet, flags);
 
     if (packet_send(packet, ctx->conn->sockfd) < 0) {
-        error_shutdown("client err: packet_send");
+        log_shutdown("client err: packet_send");
     }
 
     client_locked_enqueue(ctx->threads, ctx->ui, packet);
@@ -91,13 +91,13 @@ client_recv(ccontext_t* ctx) {
         switch (errno) {
             case ETIMEDOUT:
             case ECONNRESET:
-                error_log("client err: packet_recv: socket disconnected");
+                log_error("client err: packet_recv: socket disconnected");
                 ui_toggle_conn(ctx->ui);
                 cconn_reconnect(ctx->conn, ctx->config, &th->running, &th->cond, &th->lock_conn);
                 ui_toggle_conn(ctx->ui);
                 break;
             default:
-                error_shutdown("client err: packet_recv: fatal");
+                log_shutdown("client err: packet_recv: fatal");
                 break;
         }
 
@@ -105,7 +105,7 @@ client_recv(ccontext_t* ctx) {
     }
 
     if (bytes == RECV_INVAL) {
-        error_log("client err: packet_recv: discarded packet");
+        log_error("client err: packet_recv: discarded packet");
         return;
     }
 
@@ -172,7 +172,7 @@ cthreads_init(ccontext_t* ctx) {
     ctx->threads = malloc(sizeof(cthreads_t));
 
     if (ctx->threads == NULL) {
-        error_shutdown("threads err: malloc");
+        log_shutdown("threads err: malloc");
     }
 
     ctx->threads->running = ATOMIC_VAR_INIT(true);
@@ -182,14 +182,14 @@ cthreads_init(ccontext_t* ctx) {
     pthread_cond_init(&ctx->threads->cond, NULL);
 
     if (pthread_create(&ctx->threads->listener, NULL, &client_loop_listener, ctx) != 0) {
-        error_shutdown("threads err: create");
+        log_shutdown("threads err: create");
     }
 }
 
 static void
 cthreads_free(ccontext_t* ctx) {
     if (pthread_join(ctx->threads->listener, NULL) != 0) {
-        error_shutdown("thread err: join");
+        log_shutdown("thread err: join");
     }
 
     pthread_mutex_destroy(&ctx->threads->lock_ui);

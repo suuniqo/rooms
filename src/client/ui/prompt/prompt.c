@@ -9,7 +9,7 @@
 
 #include "../../../packet/packet.h"
 #include "../../../input/input.h"
-#include "../../../error/error.h"
+#include "../../../log/log.h"
 
 
 typedef struct {
@@ -91,7 +91,7 @@ prompt_init(prompt_t** prompt) {
     *prompt = malloc(sizeof(prompt_t));
 
     if (*prompt == NULL) {
-        error_shutdown("prompt err: malloc: no mem for prompt");
+        log_shutdown("prompt err: malloc: no mem for prompt");
     }
 
     **prompt = (prompt_t) {

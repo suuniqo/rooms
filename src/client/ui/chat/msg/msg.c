@@ -9,7 +9,7 @@
 #include "../../uifmt.h"
 
 #include "../../../../input/input.h"
-#include "../../../../error/error.h"
+#include "../../../../log/log.h"
 
 #define TIME_FORMAT "%H:%M"
 #define TIME_FORMAT_SIZE 5
@@ -101,7 +101,7 @@ chat_msg_build(chat_msg_t* msg, const packet_t* packet) {
     struct tm tm_info;
 
     if (localtime_r((const time_t*)&packet->timestamp, &tm_info) == NULL) {
-        error_shutdown("chat msg err: localtime_r");
+        log_shutdown("chat msg err: localtime_r");
     }
 
     strftime(time, sizeof(time), TIME_FORMAT, &tm_info);
@@ -123,6 +123,6 @@ chat_msg_build(chat_msg_t* msg, const packet_t* packet) {
             chat_msg_build_status(msg, packet, time, MSG_STATUS_DISC);
             break;
         default:
-            error_shutdown("msg err: invalid packet flag (%u)", packet->flags);
+            log_shutdown("msg err: invalid packet flag (%u)", packet->flags);
     }
 }

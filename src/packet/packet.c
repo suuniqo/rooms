@@ -14,7 +14,7 @@
 #include <arpa/inet.h>
 
 #include "../crypto/crc/crc32.h"
-#include "../error/error.h"
+#include "../log/log.h"
 #include "../serialize/serialize.h"
 #include "../syscall/syscall.h"
 
@@ -77,42 +77,42 @@ packet_valstr(const char* str) {
 static bool
 packet_valhead(packet_t* packet) {
     if (strlen(packet->usrname) == 0) {
-        error_log("packet err: empty usrname");
+        log_error("packet err: empty usrname");
         return false;
     }
 
     if (__builtin_popcount(packet->flags) != 1) {
-        error_log("packet err: corrupt flags 0x%02x", packet->flags);
+        log_error("packet err: corrupt flags 0x%02x", packet->flags);
         return false;
     }
 
     if (PACKET_HAS_PAYLD(packet) && (packet->payld_len == 0 || packet->crc == 0)) {
-        error_log("packet err: incoherent contents (type = MSG/WHSP and PAYLD_LEN = 0)");
+        log_error("packet err: incoherent contents (type = MSG/WHSP and PAYLD_LEN = 0)");
         return false;
     }
 
     if (!PACKET_HAS_PAYLD(packet) && (packet->payld_len != 0 || packet->crc != 0)) {
-        error_log("packet err: incoherent contents (type != MSG/WHSP and PAYLD_LEN != 0)");
+        log_error("packet err: incoherent contents (type != MSG/WHSP and PAYLD_LEN != 0)");
         return false;
     }
 
     if (packet->flags & PACKET_FLAG_WHSP && strlen(packet->options) == 0) {
-        error_log("packet err: incoherent contents (type = WHSP and OPTIONS_LEN = 0)");
+        log_error("packet err: incoherent contents (type = WHSP and OPTIONS_LEN = 0)");
         return false;
     }
 
     if (!(packet->flags & PACKET_FLAG_WHSP) && strlen(packet->options) != 0) {
-        error_log("packet err: incoherent contents (type != WHSP and OPTIONS_LEN != 0)");
+        log_error("packet err: incoherent contents (type != WHSP and OPTIONS_LEN != 0)");
         return false;
     }
 
     if (!packet_valstr(packet->usrname)) {
-        error_log("packet err: corrupt usrname (not sanitized)");
+        log_error("packet err: corrupt usrname (not sanitized)");
         return false;
     }
 
     if (!packet_valstr(packet->options)) {
-        error_log("packet err: corrupt options (not sanitized)");
+        log_error("packet err: corrupt options (not sanitized)");
         return false;
     }
 
@@ -124,7 +124,7 @@ packet_valpayld(packet_t* packet) {
     uint32_t crc = crc32_generate(packet->payld, packet->payld_len);
 
     if (packet->crc != crc) {
-        error_log("packet err: corrupt crc, (expected %08x, got %08x)");
+        log_error("packet err: corrupt crc, (expected %08x, got %08x)");
         return false;
     }
 
@@ -212,7 +212,7 @@ packet_seal(packet_t* packet, uint8_t flags) {
     time_t tm = time(NULL);
 
     if (tm < 0) {
-        error_shutdown("packet err: time");
+        log_shutdown("packet err: time");
     }
 
     packet->flags = flags;

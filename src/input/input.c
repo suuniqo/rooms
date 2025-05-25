@@ -4,7 +4,7 @@
 #include <unistd.h>
 #include <errno.h>
 
-#include "../error/error.h"
+#include "../log/log.h"
 
 #define MAX_SEQ_SIZE 5
 
@@ -39,13 +39,15 @@ input_ctrlchr(int c) {
     return (c > '\0' && c < ' ') || c == BACKSPACE;
 }
 
+// TODO eventually i should fix this... right?
+
 int
 input_read(void) {
     ssize_t nread;
     char c = 0;
 
     if ((nread = read(STDIN_FILENO, &c, 1)) == -1 && errno != EAGAIN) {
-        error_shutdown("read");
+        log_shutdown("read");
     }
 
     if (c == '\x1b') {

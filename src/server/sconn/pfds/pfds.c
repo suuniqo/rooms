@@ -8,7 +8,7 @@
 #include <sys/resource.h>
 #include <unistd.h>
 
-#include "../../../error/error.h"
+#include "../../../log/log.h"
 
 #define RESERVED_FDS 1
 
@@ -19,7 +19,7 @@ pfds_init(nfds_t size) {
     pfds_t* pfds = malloc(sizeof(pfds_t));
 
     if (pfds == NULL) {
-        error_shutdown("pfds err: malloc");
+        log_shutdown("pfds err: malloc");
     }
 
     *pfds = (pfds_t) {
@@ -30,7 +30,7 @@ pfds_init(nfds_t size) {
     pfds->arr = malloc(sizeof(struct pollfd) * size);
 
     if (pfds->arr == NULL) {
-        error_shutdown("pfds err: malloc");
+        log_shutdown("pfds err: malloc");
     }
     
     return pfds;
@@ -58,7 +58,7 @@ pfds_join(pfds_t* pfds, int newfd, short events) {
         struct pollfd* new_arr = realloc(pfds->arr, sizeof(struct pollfd) * pfds->size);
 
         if (pfds->arr == NULL) {
-            error_log("pfds err: realloc");
+            log_error("pfds err: realloc");
             return -1;
         }
 
@@ -69,7 +69,7 @@ pfds_join(pfds_t* pfds, int newfd, short events) {
     getrlimit(RLIMIT_NOFILE, &rl);
     
     if (pfds->count + 1 >= rl.rlim_cur - RESERVED_FDS) {
-        error_log("pfds err: server is full at %d clients", pfds->count - 1);
+        log_error("pfds err: server is full at %d clients", pfds->count - 1);
         return -1;
     }
 

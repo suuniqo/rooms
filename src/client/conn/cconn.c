@@ -8,7 +8,7 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
-#include "../../error/error.h"
+#include "../../log/log.h"
 #include "../../syscall/syscall.h"
 #include "../../net/net.h"
 
@@ -17,7 +17,7 @@ cconn_init(cconn_t** conn_ptr, const cconf_t* config) {
     *conn_ptr = malloc(sizeof(cconn_t));
 
     if (*conn_ptr == NULL) {
-        error_shutdown("conn err: malloc");
+        log_shutdown("conn err: malloc");
     }
 
     cconn_t* conn = *conn_ptr;
@@ -28,13 +28,13 @@ cconn_init(cconn_t** conn_ptr, const cconf_t* config) {
     };
 
     if (conn->sockfd == -1) {
-        error_shutdown("conn err: failed to connect");
+        log_shutdown("conn err: failed to connect");
     }
 
 #if defined(__APPLE__) || defined(__MACH__) /* on BSD you have  SO_NOSIGPIPE */
     int yes = 1;
     if (setsockopt(conn->sockfd, SOL_SOCKET, SO_NOSIGPIPE, &yes, sizeof(yes)) < 0) {
-        error_shutdown("sconn err: failed to remove sigpipe: setsockopt");
+        log_shutdown("sconn err: failed to remove sigpipe: setsockopt");
     }
 #endif /* defined(__APPLE__) || defined(__MACH__) */
 }

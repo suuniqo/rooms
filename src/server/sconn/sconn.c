@@ -12,7 +12,7 @@
 
 #include "pfds/pfds.h"
 
-#include "../../error/error.h"
+#include "../../log/log.h"
 #include "../../net/net.h"
 
 #define DEFAULT_PORT "9034"
@@ -44,7 +44,7 @@ sconn_init(sconn_t** conn_ptr, const char* port) {
     sconn_t* conn = *conn_ptr;
 
     if (conn == NULL) {
-        error_shutdown("sconn err: malloc");
+        log_shutdown("sconn err: malloc");
     }
  
     *conn = (sconn_t) {
@@ -77,27 +77,27 @@ sconn_accept(const sconn_t* conn, int timeout_ms) {
     int newfd = accept(conn->listener, (struct sockaddr*)&remoteaddr, &addrlen);
 
     if (newfd == -1) {
-        error_log("sconn err: accept");
+        log_error("sconn err: accept");
         return -1;
     }
 
     struct timeval timeout = timeval_from_ms(timeout_ms);
 
     if (setsockopt(newfd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) < 0) {
-        error_shutdown("sconn err: failed to set recv timeout: setsockopt");
+        log_shutdown("sconn err: failed to set recv timeout: setsockopt");
     }
     if (setsockopt(newfd, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout)) < 0) {
-        error_shutdown("sconn err: failed to set send timeout: setsockopt");
+        log_shutdown("sconn err: failed to set send timeout: setsockopt");
     }
 
 #if defined(__APPLE__) || defined(__MACH__) /* on macOS SIGPIPE has to be disabled manually */
     if (setsockopt(newfd, SOL_SOCKET, SO_NOSIGPIPE, &timeout, sizeof(timeout)) < 0) {
-        error_shutdown("sconn err: failed to remove sigpipe: setsockopt");
+        log_shutdown("sconn err: failed to remove sigpipe: setsockopt");
     }
 #endif /* defined(__APPLE__) || defined(__MACH__) */
 
     if (pfds_join(conn->pfds, newfd, POLLIN)) {
-        error_log("sconn err: couldn't accept, server full");
+        log_error("sconn err: couldn't accept, server full");
         return -1;
     }
 
@@ -120,11 +120,11 @@ sconn_poll(const sconn_t* conn) {
 
     if (poll_count < 0) {
         if (errno == EINTR) {
-            error_log("sconn err: poll");
+            log_error("sconn err: poll");
             return 0;
         }
 
-        error_shutdown("sconn err: poll");
+        log_shutdown("sconn err: poll");
     }
 
     return poll_count;
