@@ -7,7 +7,6 @@
 #include <stdlib.h>
 #include <sys/socket.h>
 #include <unistd.h>
-#include <signal.h>
 
 #include "../../error/error.h"
 #include "../../syscall/syscall.h"
@@ -32,14 +31,10 @@ cconn_init(cconn_t** conn_ptr, const cconf_t* config) {
         error_shutdown("conn err: failed to connect");
     }
 
-#if defined(__APPLE__) || defined(__MACH__) /* on macOS SIGPIPE has to be disabled manually */
-    struct sigaction sa;
-    sa.sa_handler = SIG_IGN;
-    sigemptyset(&sa.sa_mask);
-    sa.sa_flags = 0;
-
-    if (sigaction(SIGPIPE, &sa, NULL) < 0) {
-        error_shutdown("conn err: sigaction");
+#if defined(__APPLE__) || defined(__MACH__) /* on BSD you have  SO_NOSIGPIPE */
+    int yes = 1;
+    if (setsockopt(conn->sockfd, SOL_SOCKET, SO_NOSIGPIPE, &yes, sizeof(yes)) < 0) {
+        error_shutdown("sconn err: failed to remove sigpipe: setsockopt");
     }
 #endif /* defined(__APPLE__) || defined(__MACH__) */
 }

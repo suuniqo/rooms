@@ -103,13 +103,9 @@ server_send(const packet_t* packet, int send_fd) {
     if (packet_send(packet, send_fd) < 0) {
         switch (errno) {
             case ECONNRESET:
-            case EPIPE:
-            case EAGAIN:
-            case EWOULDBLOCK: /* checked for portability */
-            case ENETDOWN:
-            case ENETUNREACH:
+                return SHOULD_KICK;
             default:
-                break;
+                return SHOULD_RESET;
         }
     }
 

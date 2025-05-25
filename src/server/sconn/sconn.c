@@ -2,12 +2,12 @@
 #include "sconn.h"
 
 #include <arpa/inet.h>
-#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/_types/_timeval.h>
 #include <sys/errno.h>
 #include <sys/poll.h>
+#include <sys/socket.h>
 #include <unistd.h>
 
 #include "pfds/pfds.h"
@@ -84,20 +84,15 @@ sconn_accept(const sconn_t* conn, int timeout_ms) {
     struct timeval timeout = timeval_from_ms(timeout_ms);
 
     if (setsockopt(newfd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) < 0) {
-        error_shutdown("sconn err: failed to set timeout: setsockopt");
+        error_shutdown("sconn err: failed to set recv timeout: setsockopt");
     }
     if (setsockopt(newfd, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout)) < 0) {
-        error_shutdown("sconn err: failed to set timeout: setsockopt");
+        error_shutdown("sconn err: failed to set send timeout: setsockopt");
     }
 
 #if defined(__APPLE__) || defined(__MACH__) /* on macOS SIGPIPE has to be disabled manually */
-    struct sigaction sa;
-    sa.sa_handler = SIG_IGN;
-    sigemptyset(&sa.sa_mask);
-    sa.sa_flags = 0;
-
-    if (sigaction(SIGPIPE, &sa, NULL) < 0) {
-        error_shutdown("sconn err: sigaction");
+    if (setsockopt(newfd, SOL_SOCKET, SO_NOSIGPIPE, &timeout, sizeof(timeout)) < 0) {
+        error_shutdown("sconn err: failed to remove sigpipe: setsockopt");
     }
 #endif /* defined(__APPLE__) || defined(__MACH__) */
 
