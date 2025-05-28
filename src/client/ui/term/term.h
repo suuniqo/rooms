@@ -19,19 +19,13 @@ typedef struct term term_t;
 /*** mem ***/
 
 extern void
-term_init(term_t** term);
-
-extern void
-term_free(term_t* term);
+term_init(term_t** term_ptr);
 
 
 /*** rawmode ***/
 
 extern void
-term_disable_rawmode(term_t *term_conf);
-
-extern void
-term_enable_rawmode(term_t *term_conf);
+term_enable_rawmode(term_t** term_ptr);
 
 
 /*** window ***/

@@ -9,7 +9,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-
 /*** data ***/
 
 #define TIME_FORMAT "%Y-%m-%d %H:%M:%S"
@@ -20,10 +19,11 @@
 #define LOG_NAME_LEN 32
 
 typedef enum {
-    ERROR_TYPE_NORMAL,
-    ERROR_TYPE_FATAL,
-    ERROR_TYPE_LEN,
-} error_type_t;
+    LOG_NORMAL,
+    LOG_ERROR,
+    LOG_FATAL,
+    LOG_LEN,
+} log_type_t;
 
 typedef struct log {
     pthread_mutex_t lock;
@@ -32,9 +32,7 @@ typedef struct log {
 
 static log_t* log = NULL; /* NOLINT */
 
-static pthread_mutex_t log_lock = PTHREAD_MUTEX_INITIALIZER; /* NOLINT */
-static const char* const error_type_str[ERROR_TYPE_LEN] = {"ERROR", "FATAL"};
-
+static const char* const error_type_str[LOG_LEN] = {"LOGGN", "ERROR", "FATAL"};
 
 /*** aux ***/
 
@@ -60,7 +58,7 @@ log_free(void) {
         return;
     }
 
-    pthread_mutex_destroy(&log_lock);
+    pthread_mutex_destroy(&log->lock);
     free(log);
 }
 
@@ -74,7 +72,7 @@ log_init(const char* user, const char* mode) {
 
     if (log == NULL) {
         perror("log err: malloc");
-        exit(1);
+        exit(EXIT_FAILURE);
     }
 
     if (user != NULL) {
@@ -89,8 +87,8 @@ log_init(const char* user, const char* mode) {
 }
 
 void
-log_write(const char* errmsg, error_type_t type) {
-    pthread_mutex_lock(&log_lock);
+log_write(const char* errmsg, log_type_t type) {
+    pthread_mutex_lock(&log->lock);
 
     int saved_errno = errno;
 
@@ -108,7 +106,7 @@ log_write(const char* errmsg, error_type_t type) {
 
     if (log == NULL) {
         perror("log err: failed to open rooms_log.txt");
-        exit(1);
+        exit(EXIT_FAILURE);
     }
 
     fprintf(logfd, "[%s][%s] %s", error_type_str[type], tm_buf, errmsg);
@@ -121,7 +119,7 @@ log_write(const char* errmsg, error_type_t type) {
     fprintf(logfd, "\n");
     fclose(logfd);
 
-    pthread_mutex_unlock(&log_lock);
+    pthread_mutex_unlock(&log->lock);
 }
 
 void
@@ -134,7 +132,7 @@ log_error(const char* fmt, ...) {
     vsnprintf(err_buf, sizeof(err_buf), fmt, args);
     va_end(args);
 
-    log_write(err_buf, ERROR_TYPE_NORMAL);
+    log_write(err_buf, LOG_NORMAL);
 }
 
 void
@@ -147,7 +145,7 @@ log_shutdown(const char* fmt, ...) {
     vsnprintf(err_buf, sizeof(err_buf), fmt, args);
     va_end(args);
 
-    log_write(err_buf, ERROR_TYPE_FATAL);
+    log_write(err_buf, LOG_FATAL);
 
-    exit(1);
+    exit(EXIT_FAILURE);
 }

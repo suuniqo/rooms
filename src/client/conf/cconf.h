@@ -13,9 +13,6 @@ typedef struct config {
 /*** methods ***/
 
 extern void
-cconf_init(cconf_t** conf, const char** args);
-
-extern void
-cconf_free(cconf_t* conf);
+cconf_init(cconf_t** conf_ptr, const char** args);
 
 #endif /* !defined(CCONF_H) */

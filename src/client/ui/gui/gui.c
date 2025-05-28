@@ -11,6 +11,8 @@
 #include "../uiconf.h"
 #include "../uifmt.h"
 
+#include "../../../cleaner/cleaner.h"
+
 
 const char* const CONN_STR[] = {
     "online",
@@ -61,14 +63,15 @@ draw_ctrl(printer_t* printer, const char* key1, const char* ds1, const char* key
 
 /* screen */
 
-void
-gui_start(void) {
-    printf("%s%s\n", INIT_ALT_BUF, INIT_BRACKETED_PASTE);
+static void
+gui_stop(void) {
+    printf("%s%s%s%s%s\n", RESET_SCROLL, FONT_RESET, CURSOR_SHOW, KILL_BRACKETED_PASTE, KILL_ALT_BUF);
 }
 
 void
-gui_stop(void) {
-    printf("%s%s%s%s%s\n", RESET_SCROLL, FONT_RESET, CURSOR_SHOW, KILL_BRACKETED_PASTE, KILL_ALT_BUF);
+gui_start(void) {
+    printf("%s%s\n", INIT_ALT_BUF, INIT_BRACKETED_PASTE);
+    cleaner_push((cleaner_fn_t)gui_stop, NULL);
 }
 
 

@@ -9,8 +9,24 @@
 #include <unistd.h>
 
 #include "../../log/log.h"
+#include "../../cleaner/cleaner.h"
 #include "../../syscall/syscall.h"
 #include "../../net/net.h"
+
+
+/*** cleanup ***/
+
+static void
+cconn_free(cconn_t* conn) {
+    if (conn->sockfd != -1) {
+        close(conn->sockfd);
+    }
+
+    free(conn);
+}
+
+
+/*** methods ***/
 
 void
 cconn_init(cconn_t** conn_ptr, const cconf_t* config) {
@@ -37,6 +53,8 @@ cconn_init(cconn_t** conn_ptr, const cconf_t* config) {
         log_shutdown("sconn err: failed to remove sigpipe: setsockopt");
     }
 #endif /* defined(__APPLE__) || defined(__MACH__) */
+
+    cleaner_push((cleaner_fn_t)cconn_free, (void**)conn_ptr);
 }
 
 #define MIN_BACKOFF (ONE_SC / 16)
@@ -108,13 +126,4 @@ cconn_shutdown(cconn_t* conn, int flag) {
     if (conn->sockfd != -1) {
         shutdown(conn->sockfd, flag);
     }
-}
-
-void
-cconn_free(cconn_t* conn) {
-    if (conn->sockfd != -1) {
-        close(conn->sockfd);
-    }
-
-    free(conn);
 }

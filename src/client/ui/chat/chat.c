@@ -11,6 +11,7 @@
 #include "msg/msg.h"
 
 #include "../../../log/log.h"
+#include "../../../cleaner/cleaner.h"
 #include "../../../packet/packet.h"
 #include "../../../input/input.h"
 
@@ -29,6 +30,14 @@ struct chat {
     chat_pos_t scroll;
     bool bottom;
 };
+
+
+/*** cleanup ***/
+
+static void
+chat_free(chat_t* chat) {
+    free(chat);
+}
 
 
 /*** aux ***/
@@ -203,11 +212,8 @@ chat_init(chat_t** chat) {
             },
             .bottom = true,
     };
-}
 
-void
-chat_free(chat_t* chat) {
-    free(chat);
+    cleaner_push((cleaner_fn_t)chat_free, (void**)chat);
 }
 
 void

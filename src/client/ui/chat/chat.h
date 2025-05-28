@@ -29,9 +29,6 @@ extern void
 chat_init(chat_t** chat);
 
 extern void
-chat_free(chat_t* chat);
-
-extern void
 chat_enqueue(chat_t* chat, const packet_t* packet, const chat_layout_t* lyt);
 
 extern void

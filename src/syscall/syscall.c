@@ -19,8 +19,6 @@ safe_nanosleep(long ns) {
     struct timespec req = {ns / ONE_SC, ns % ONE_SC};
     struct timespec rem;
 
-    int saved_errno = errno;
-
     while (nanosleep(&req, &rem) == -1) {
         if (errno == EINTR) {
             req = rem;
@@ -28,8 +26,6 @@ safe_nanosleep(long ns) {
             log_shutdown("syscall err: nanosleep");
         }
     }
-
-    errno = saved_errno;
 }
 
 int64_t

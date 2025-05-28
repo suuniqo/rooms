@@ -18,6 +18,7 @@
 #include "conf/cconf.h"
 
 #include "../log/log.h"
+#include "../cleaner/cleaner.h"
 #include "../packet/packet.h"
 
 
@@ -59,6 +60,25 @@ client_locked_refresh(cthreads_t* threads, ui_t* ui) {
 
 
 /*** network ***/
+
+static void
+client_handle_packet(ccontext_t* ctx, packet_t* packet) {
+    switch ((packet_flags_t)packet->flags) {
+        case PACKET_FLAG_ACK:
+        case PACKET_FLAG_PONG:
+            break;
+        case PACKET_FLAG_DISC:
+        case PACKET_FLAG_MSG:
+        case PACKET_FLAG_WHSP:
+        case PACKET_FLAG_JOIN:
+        case PACKET_FLAG_EXIT:
+            client_locked_enqueue(ctx->threads, ctx->ui, packet);
+            break;
+        case PACKET_FLAG_PING:
+            log_shutdown("client err: invalid packet flag (%u)", packet->flags);
+            break;
+    }
+}
 
 static void
 client_send(ccontext_t* ctx, packet_t* packet, uint8_t flags) {
@@ -109,7 +129,7 @@ client_recv(ccontext_t* ctx) {
         return;
     }
 
-    client_locked_enqueue(ctx->threads, ctx->ui, &packet);
+    client_handle_packet(ctx, &packet);
 }
 
 
@@ -168,6 +188,20 @@ client_loop_talker(ccontext_t* ctx) {
 /*** threads ***/
 
 static void
+cthreads_free(ccontext_t* ctx) {
+    if (pthread_join(ctx->threads->listener, NULL) != 0) {
+        log_shutdown("thread err: join");
+    }
+
+    pthread_mutex_destroy(&ctx->threads->lock_ui);
+    pthread_mutex_destroy(&ctx->threads->lock_conn);
+    pthread_cond_destroy(&ctx->threads->cond);
+
+    free(ctx->threads);
+    ctx->threads = NULL;
+}
+
+static void
 cthreads_init(ccontext_t* ctx) {
     ctx->threads = malloc(sizeof(cthreads_t));
 
@@ -184,57 +218,47 @@ cthreads_init(ccontext_t* ctx) {
     if (pthread_create(&ctx->threads->listener, NULL, &client_loop_listener, ctx) != 0) {
         log_shutdown("threads err: create");
     }
-}
 
-static void
-cthreads_free(ccontext_t* ctx) {
-    if (pthread_join(ctx->threads->listener, NULL) != 0) {
-        log_shutdown("thread err: join");
-    }
-
-    pthread_mutex_destroy(&ctx->threads->lock_ui);
-    pthread_mutex_destroy(&ctx->threads->lock_conn);
-    pthread_cond_destroy(&ctx->threads->cond);
-
-    free(ctx->threads);
-    ctx->threads = NULL;
+    cleaner_push((cleaner_fn_t)cthreads_free, (void**)&ctx->threads);
 }
 
 
 /*** context ***/
 
 static void
-ccontext_init(ccontext_t* ctx, const char** args) {
+ccontext_free(ccontext_t* ctx) {
+    free(ctx);
+}
+
+static void
+ccontext_init(ccontext_t** ctx_ptr, const char** args) {
+    *ctx_ptr = malloc(sizeof(ccontext_t));
+
+    if (ctx_ptr == NULL) {
+        log_shutdown("client err: malloc");
+    }
+
+    ccontext_t* ctx = *ctx_ptr;
+
     cconf_init(&ctx->config, args);
     cconn_init(&ctx->conn, ctx->config);
     ui_init(&ctx->ui);
     cthreads_init(ctx);
+
+    cleaner_push((cleaner_fn_t)ccontext_free, (void**)ctx_ptr);
 }
 
-static void
-ccontext_free(ccontext_t* ctx) {
-    ui_free(ctx->ui);
-    cthreads_free(ctx);
-    cconn_free(ctx->conn);
-    cconf_free(ctx->config);
-}
 
-    
 /*** client ***/
 
 int
 client(const char** args) {
-    ccontext_t ctx;
+    ccontext_t* ctx;
 
     ccontext_init(&ctx, args);
+    ui_start(ctx->ui);
 
-    ui_start(ctx.ui);
-
-    client_loop_talker(&ctx);
-
-    ui_stop(ctx.ui);
-
-    ccontext_free(&ctx);
+    client_loop_talker(ctx);
 
     return 0;
 }

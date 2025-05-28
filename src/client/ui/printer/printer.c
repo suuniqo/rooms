@@ -8,6 +8,7 @@
 #include <unistd.h>
 
 #include "../../../log/log.h"
+#include "../../../cleaner/cleaner.h"
 
 #define PRINTER_INIT_SIZE 512
 
@@ -16,6 +17,16 @@ struct printer {
     size_t len;
     size_t size;
 };
+
+
+/*** cleanup ***/
+
+static void
+printer_free(printer_t* printer) {
+    free(printer->buf);
+    free(printer);
+}
+
 
 /*** methods ***/
 
@@ -36,12 +47,8 @@ printer_init(printer_t** printer) {
     if ((*printer)->buf == NULL) {
         log_shutdown("printer err: malloc: no mem for printer buf");
     }
-}
 
-void
-printer_free(printer_t* printer) {
-    free(printer->buf);
-    free(printer);
+    cleaner_push((cleaner_fn_t)printer_free, (void**)printer);
 }
 
 void

@@ -9,6 +9,7 @@
 
 #include "../../../packet/packet.h"
 #include "../../../input/input.h"
+#include "../../../cleaner/cleaner.h"
 #include "../../../log/log.h"
 
 
@@ -34,8 +35,12 @@ struct prompt {
     prompt_scroll_t scroll;
 };
 
-
 /*** private ***/
+
+static void
+prompt_free(prompt_t* prompt) {
+    free(prompt);
+}
 
 static unsigned
 prompt_prev_blen(const prompt_t* prompt, unsigned bpos) {
@@ -109,11 +114,8 @@ prompt_init(prompt_t** prompt) {
             .upos = 0,
         },
     };
-}
 
-void
-prompt_free(prompt_t* prompt) {
-    free(prompt);
+    cleaner_push((cleaner_fn_t)prompt_free, (void**)prompt);
 }
 
 void

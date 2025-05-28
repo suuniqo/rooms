@@ -8,9 +8,6 @@ extern void
 printer_init(printer_t** printer);
 
 extern void
-printer_free(printer_t* printer);
-
-extern void
 printer_append(printer_t* printer, const char* fmt, ...);
 
 extern void

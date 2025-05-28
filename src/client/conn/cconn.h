@@ -31,8 +31,4 @@ cconn_get_socket(cconn_t* conn);
 extern void
 cconn_shutdown(cconn_t* conn, int flag);
 
-extern void
-cconn_free(cconn_t* conn);
-
-
 #endif /* !defined(CCONN_H) */

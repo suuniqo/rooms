@@ -9,6 +9,7 @@
 
 #include "../../log/log.h"
 #include "../../net/net.h"
+#include "../../cleaner/cleaner.h"
 #include "../../packet/packet.h"
 
 /*** data ***/
@@ -19,6 +20,14 @@ typedef enum {
     POS_IP,
     POS_PORT,
 } cargs_t;
+
+
+/*** cleanup ***/
+
+static void
+cconf_free(cconf_t* conf) {
+    free(conf);
+}
 
 
 /*** aux ***/
@@ -66,22 +75,19 @@ cconf_extract_port(const char** args) {
 /*** methods ***/
 
 void
-cconf_init(cconf_t** conf, const char** args) {
-    *conf = malloc(sizeof(cconf_t));
+cconf_init(cconf_t** conf_ptr, const char** args) {
+    *conf_ptr = malloc(sizeof(cconf_t));
 
-    if (*conf == NULL) {
+    if (*conf_ptr == NULL) {
         log_shutdown("cconf err: malloc");
     }
 
-    **conf = (cconf_t) {
+    **conf_ptr = (cconf_t) {
         .port    = cconf_extract_port(args),
         .ip      = cconf_extract_ip(args),
         .usrname = cconf_extract_usrname(args)
    };
+
+    cleaner_push((cleaner_fn_t)cconf_free, (void**)conf_ptr);
 }
 
-
-void
-cconf_free(cconf_t* conf) {
-    free(conf);
-}

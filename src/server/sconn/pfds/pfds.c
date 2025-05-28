@@ -83,7 +83,6 @@ pfds_join(pfds_t* pfds, int newfd, short events) {
 
 void
 pfds_exit(pfds_t* pfds, unsigned idx) {
-    close(pfds->arr[idx].fd);
     pfds->arr[idx] = pfds->arr[--pfds->count];
 }
 

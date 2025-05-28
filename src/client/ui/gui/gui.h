@@ -14,9 +14,6 @@
 extern void
 gui_start(void);
 
-extern void
-gui_stop(void);
-
 
 /*** cursor ***/
 

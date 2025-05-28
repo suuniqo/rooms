@@ -15,16 +15,10 @@ typedef enum {
 } ui_signal_t;
 
 extern void
-ui_init(ui_t** ui);
-
-extern void
-ui_free(ui_t* ui);
+ui_init(ui_t** ui_ptr);
 
 extern void
 ui_start(ui_t* ui);
-
-extern void
-ui_stop(ui_t* ui);
 
 extern void
 ui_refresh(ui_t* ui);

@@ -16,8 +16,8 @@ OBJS := $(patsubst $(SRC_DIR)/%.c, $(BUILD_DIR)/%.o, $(SRCS))
 
 ### compiler ###
 
-CC := gcc-14
-CFLAGS := -Wall -Wextra -pedantic
+CC := gcc-15
+CFLAGS := -Wall -Wextra -Werror -pedantic -std=c11
 LDFLAGS := -lm
 
 ifeq ($(debug), 1)

@@ -63,7 +63,7 @@ server_recv(packet_t* packet, int recv_fd) {
     int bytes = packet_recv(packet, recv_fd, MAX_RESYNCS);
 
     if (bytes == RECV_DISCONN) {
-        printf("server: socket %d hung up\n", recv_fd);
+        printf("server: socket %d up (2)\n", recv_fd);
     }
 
     if (bytes == RECV_ERROR) {
@@ -72,8 +72,7 @@ server_recv(packet_t* packet, int recv_fd) {
             case ECONNRESET:
                 printf("server: socket %d disconnected\n", recv_fd);
                 return SHOULD_KICK;
-            case EAGAIN:
-            case EWOULDBLOCK: /* checked for portability */
+            case EWOULDBLOCK:
                 printf("server: socket %d timed out\n", recv_fd);
                 return SHOULD_STRIKE;
             default:
@@ -213,9 +212,10 @@ server_handle_client(const sconn_t* conn, unsigned fd_idx) {
     packet_t packet;
     scomm_err_t rv = server_recv(&packet, pfd.fd);
     
-    if (rv == SHOULD_STRIKE && sconn_strike(conn, fd_idx) < 0) {
+    // TODO impl
+    if (rv == SHOULD_STRIKE /* && sconn_strike(conn, fd_idx) < 0 */) {
         printf("server: socket %d blocked and kicked\n", pfd.fd);
-        sconn_block(conn, fd_idx);
+        //sconn_block(conn, fd_idx);
         sconn_kick(conn, fd_idx);
         return -1;
     }
@@ -227,7 +227,8 @@ server_handle_client(const sconn_t* conn, unsigned fd_idx) {
     }
 
     if (server_respond(conn, fd_idx, &packet) < 0) {
-        server_reset(conn);
+        log_shutdown("server err: server_respond");
+        //server_reset(conn);
     }
 
     return 0;
@@ -273,8 +274,6 @@ void
 server_loop(scontext_t* ctx) {
     while (1) {
         int poll_count = sconn_poll(ctx->conn);
-
-        printf("server: polled %d fds\n", poll_count);
 
         for (unsigned fd_idx = 0; poll_count > 0; ++fd_idx) { // keep going until no more events left 
             printf("server: iter %u\n", fd_idx);

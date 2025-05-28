@@ -10,13 +10,13 @@
 
 #include "uiconf.h"
 
-#include "cleaner/cleaner.h"
 #include "chat/chat.h"
 #include "gui/gui.h"
 #include "printer/printer.h"
 #include "prompt/prompt.h"
 #include "term/term.h"
 
+#include "../../cleaner/cleaner.h"
 #include "../../input/input.h"
 #include "../../syscall/syscall.h"
 #include "../../log/log.h"
@@ -68,7 +68,6 @@ struct ui {
     chat_t* chat;
     prompt_t* prompt;
     printer_t* printer;
-    cleaner_t* cleaner;
     ui_status_t status;
     ui_layout_t layout;
     ui_clock_t clock;
@@ -80,6 +79,15 @@ static atomic_uchar status_flags = ATOMIC_VAR_INIT(EVENT_WINCH | EVENT_REDRAW); 
 #define FLAG_SET(FLAG)              (atomic_fetch_or(&status_flags, (FLAG)))
 #define FLAG_CLEAR(FLAG)            (atomic_fetch_and(&status_flags, ~(FLAG)))
 #define FLAG_TEST_AND_CLEAR(FLAG)   (FLAG_CLEAR(FLAG) & (FLAG))
+
+
+
+/*** cleanup ***/
+
+static void
+ui_free(ui_t* ui) {
+    free(ui);
+}
 
 
 /*** status ***/
@@ -419,50 +427,30 @@ ui_handle_keypress_help(ui_t* ui, int key) {
 /*** methods ***/
 
 void
-ui_init(ui_t** ui) {
-    *ui = malloc(sizeof(ui_t));
+ui_init(ui_t** ui_ptr) {
+    *ui_ptr = malloc(sizeof(ui_t));
 
-    if (*ui == NULL) {
+    if (*ui_ptr == NULL) {
         log_shutdown("ui err: malloc:");
     }
-}
 
-void
-ui_free(ui_t* ui) {
-    free(ui);
-}
-
-void
-ui_stop(ui_t* ui) {
-    cleaner_run(ui->cleaner);
+    cleaner_push((cleaner_fn_t)ui_free, (void**)ui_ptr);
 }
 
 void
 ui_start(ui_t* ui) {
-    cleaner_init(&ui->cleaner);
-    cleaner_push(ui->cleaner, (cleaner_fn_t)cleaner_free, ui->cleaner);
-
     term_init(&ui->term);
-    cleaner_push(ui->cleaner, (cleaner_fn_t)term_free, ui->term);
-
     printer_init(&ui->printer);
-    cleaner_push(ui->cleaner, (cleaner_fn_t)printer_free, ui->printer);
-
     prompt_init(&ui->prompt);
-    cleaner_push(ui->cleaner, (cleaner_fn_t)prompt_free, ui->prompt);
-
     chat_init(&ui->chat);
-    cleaner_push(ui->cleaner, (cleaner_fn_t)chat_free, ui->chat);
 
     status_init(&ui->status);
     layout_init(&ui->layout);
     clock_init(&ui->clock);
 
-    term_enable_rawmode(ui->term);
-    cleaner_push(ui->cleaner, (cleaner_fn_t)term_disable_rawmode, ui->term);
+    term_enable_rawmode(&ui->term);
 
     gui_start();
-    cleaner_push(ui->cleaner, (cleaner_fn_t)gui_stop, NULL);
 }
 
 void
